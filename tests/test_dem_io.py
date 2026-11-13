@@ -74,6 +74,29 @@ def test_load_dem_computes_meter_cell_size_from_geographic_crs(tmp_path: Path) -
     assert 0.9 < north_m < 1.3
 
 
+def test_load_dem_rejects_projected_foot_crs(tmp_path: Path) -> None:
+    from terra_scout.io.dem import DemValidationError, load_dem
+
+    path = tmp_path / "us_feet.tif"
+    array = np.full((8, 8), 200.0, dtype=np.float32)
+    with rasterio.open(
+        path,
+        "w",
+        driver="GTiff",
+        height=8,
+        width=8,
+        count=1,
+        dtype="float32",
+        crs="EPSG:2227",
+        transform=from_origin(6_000_000.0, 2_000_000.0, 3.0, 3.0),
+        nodata=-9999,
+    ) as dataset:
+        dataset.write(array, 1)
+
+    with pytest.raises(DemValidationError, match="meter"):
+        load_dem(path)
+
+
 def test_write_synthetic_dem_fixture_is_readable(tmp_path: Path) -> None:
     path = write_synthetic_dem(tmp_path / "check.tif", mound=False)
     with rasterio.open(path) as dataset:
