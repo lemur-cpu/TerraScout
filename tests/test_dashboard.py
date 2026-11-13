@@ -155,6 +155,7 @@ def test_finder_copy_does_not_auto_claim_sites() -> None:
         CAPTION,
         HEADING,
         LOOP_CAPTION,
+        SKEPTIC_EMPTY,
         WARNING,
     )
 
@@ -163,6 +164,8 @@ def test_finder_copy_does_not_auto_claim_sites() -> None:
     assert "not a new site" in WARNING.lower()
     assert "novelty is not demonstrated" in ABOUT.lower()
     assert "scan" in LOOP_CAPTION.lower() and "human" in LOOP_CAPTION.lower()
+    assert "skeptic" in SKEPTIC_EMPTY.lower()
+    assert "analyze-only" in SKEPTIC_EMPTY.lower()
 
 
 def test_console_theme_uses_field_terminal_tokens() -> None:

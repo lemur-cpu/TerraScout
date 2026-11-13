@@ -13,6 +13,7 @@ from terra_scout.dashboard.copy import (
     LOOP_CAPTION,
     PAGE_TITLE,
     QUEUE_CAPTION,
+    SKEPTIC_EMPTY,
     WARNING,
 )
 from terra_scout.dashboard.loader import load_analysis_directory
@@ -105,6 +106,20 @@ with queue:
             st.markdown("**ALT. EXPLANATIONS (NOT DISPROOF)**")
             for note in selected.alternative_explanations:
                 st.write(f"- {note}")
+        if selected.supporting_evidence:
+            st.markdown("**SUPPORTING**")
+            for note in selected.supporting_evidence:
+                st.write(f"- {note}")
+        if selected.contradicting_evidence:
+            st.markdown("**CONTRADICTING**")
+            for note in selected.contradicting_evidence:
+                st.write(f"- {note}")
+        if not (
+            selected.alternative_explanations
+            or selected.supporting_evidence
+            or selected.contradicting_evidence
+        ):
+            st.caption(SKEPTIC_EMPTY)
         choice = st.selectbox(
             "REVIEW STATUS",
             options=list(REVIEW_STATUSES),

@@ -13,6 +13,9 @@ QUEUE_CAPTION = (
 )
 LOOP_CAPTION = "Loop: scan → rank → evidence packet → human / authority."
 INSPECTOR_HEADING = "Evidence packet"
+SKEPTIC_EMPTY = (
+    "No skeptic notes on this row. Analyze-only runs do not run the skeptic."
+)
 ABOUT = (
     "TerraScout candidate site finder. "
     "Anomaly detection is not archaeological confirmation. "
