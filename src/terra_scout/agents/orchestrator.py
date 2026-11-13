@@ -36,6 +36,13 @@ def run_swarm(
         candidate.alternative_explanations = critique.alternative_explanations
     verification_trace = verify_candidates(dem, detection.candidates)
     persist_analysis(dem, layers, detection, output_dir / "products")
+    from terra_scout.dashboard.manifest import write_run_manifest
+
+    write_run_manifest(
+        output_dir,
+        dem_path=dem_path,
+        observation_kind=dem.observation_kind,
+    )
     traces = [
         geospatial_trace,
         detection_trace,
@@ -43,7 +50,7 @@ def run_swarm(
         _skeptic_trace(critiques),
         verification_trace,
     ]
-    report = write_report(
+    return write_report(
         dem=dem,
         candidates=detection.candidates,
         traces=traces,
@@ -51,11 +58,6 @@ def run_swarm(
         output_dir=output_dir,
         llm_was_used=llm_was_used,
     )
-    report.agent_traces = [
-        *traces,
-        _reporting_trace(report.report_path),
-    ]
-    return report
 
 
 def _skeptic_trace(critiques: list) -> AgentTrace:
@@ -71,20 +73,4 @@ def _skeptic_trace(critiques: list) -> AgentTrace:
         ],
         notes=["Alternatives are hypotheses, not proof of a natural origin."],
         candidate_ids=[item.candidate_id for item in critiques],
-    )
-
-
-def _reporting_trace(report_path: Path) -> AgentTrace:
-    return AgentTrace(
-        agent_id="reporting",
-        task_id="write-report",
-        tool_calls=[
-            ToolTrace(
-                tool_name="write_report",
-                arguments={"path": str(report_path)},
-                output_summary=str(report_path),
-                succeeded=True,
-            )
-        ],
-        notes=["Report is for professional review, not public discovery claims."],
     )
