@@ -29,10 +29,15 @@ Expected files in `output/demo/`:
 | `layers/hillshade.tif` | Multidirectional hillshade |
 | `layers/slope_degrees.tif` | Horn 1981 slope |
 | `layers/local_relief.tif` | Circular-mean local relief residual |
+| `layers/curvature.tif` | Plan curvature |
+| `layers/tpi.tif` | Topographic position |
+| `layers/sky_view_factor.tif` | Sky-view factor |
+| `layers/ruggedness.tif` | Terrain ruggedness |
 | `candidates.geojson` | Anomaly polygons with scores and disclaimers |
 | `preview_hillshade.png` | Quick-look image |
 | `map.html` | Local Folium map |
 | `report.txt` | Candidate list |
+| `registry.sqlite3` | Local review registry |
 
 On the synthetic 64×64 mound fixture used by tests, `analyze` writes a `mound_like` candidate whose score definition contains `not a calibrated archaeological probability`.
 
