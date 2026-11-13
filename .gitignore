@@ -1,0 +1,102 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+.python-version
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.cache/
+
+# uv
+uv.lock.bak
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Geospatial datasets and rasters (never commit raw LiDAR / large DEMs)
+*.tif
+*.tiff
+*.img
+*.asc
+*.bil
+*.hdr
+*.las
+*.laz
+*.copc
+*.copc.laz
+*.xyz
+*.e57
+*.h5
+*.hdf5
+*.nc
+*.gpkg
+*.gdb/
+*.shp
+*.shx
+*.dbf
+*.prj
+*.cpg
+*.sbn
+*.sbx
+data/raw/
+data/cache/
+data/downloads/
+*.vrt
+*.ovr
+*.aux.xml
+*.xml.bak
+
+# Keep tiny synthetic fixtures
+!tests/fixtures/**/*.tif
+!tests/fixtures/**/*.geojson
+
+# Model weights and ML caches
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.safetensors
+models/weights/
+.cache/huggingface/
+.cache/torch/
+
+# Local research database and candidate geometry
+*.sqlite
+*.sqlite3
+*.db
+var/
+runs/
+output/
+artifacts/
+
+# Secrets and credentials
+*.pem
+*.key
+secrets/
+.netrc
+earthdata-netrc
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Streamlit
+.streamlit/secrets.toml
