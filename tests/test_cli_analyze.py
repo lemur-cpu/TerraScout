@@ -24,6 +24,12 @@ def test_analyze_writes_layers_geojson_preview_and_map(
     assert (output_dir / "candidates.geojson").exists()
     assert (output_dir / "preview_hillshade.png").exists()
     assert (output_dir / "map.html").exists()
+    assert (output_dir / "registry.sqlite3").exists()
+    from terra_scout.registry.store import CandidateStore
+
+    stored = CandidateStore(output_dir / "registry.sqlite3").list_candidates()
+    assert stored
+    assert stored[0].review_status == "unreviewed"
     geojson_text = (output_dir / "candidates.geojson").read_text(encoding="utf-8")
     assert "mound_like" in geojson_text
     assert "not a calibrated archaeological probability" in geojson_text

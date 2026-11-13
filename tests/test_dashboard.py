@@ -25,3 +25,9 @@ def test_dashboard_loader_reads_analyze_outputs(
     assert state.status == "ok"
     assert state.candidate_count >= 1
     assert state.hillshade_png is not None
+    from terra_scout.registry.store import CandidateStore
+
+    registry = CandidateStore(output_dir / "registry.sqlite3")
+    candidate = registry.list_candidates()[0]
+    updated = registry.set_review_status(candidate.candidate_id, "needs_research")
+    assert updated.review_status == "needs_research"
