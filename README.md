@@ -9,7 +9,7 @@ Anomaly detection is **not** archaeological confirmation. High `anomaly_score` v
 Python 3.12+ and [uv](https://docs.astral.sh/uv/):
 
 ```bash
-git clone <repo-url> terra-scout
+git clone https://github.com/lemur-cpu/TerraScout.git terra-scout
 cd terra-scout
 uv sync --extra dev
 uv run ruff check src tests

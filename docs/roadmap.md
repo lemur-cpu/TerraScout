@@ -17,4 +17,3 @@
 - Trained archaeological detector (no labeled field dataset, no training run)
 - Calibrated P(archaeological) scores
 - Public hosted dashboard (intentionally out of scope)
-- GitHub private remote creation from the Cursor GitHub App installation token
