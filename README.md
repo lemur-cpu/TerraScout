@@ -2,64 +2,101 @@
 
 Evidence-driven research software for finding *potential* anthropogenic landscape features in public LiDAR and digital elevation models.
 
-Anomaly detection is **not** archaeological confirmation. High anomaly scores are residual/shape statistics, not calibrated probabilities that a feature is a site. Human review is required before any discovery claim.
-
-## Current status
-
-Phase 1 (working foundation) is the first deliverable: local DEM analysis, relief visualizations, conventional anomaly detection, CLI, tests, and a real public USGS 3DEP demonstration. Later phases add USGS acquisition UX, a localhost dashboard, a typed agent swarm, and a benchmark harness.
-
-## Scientific limitations
-
-- Public DEM/LiDAR coverage is incomplete. Empty search results are valid.
-- Bare-earth models can still contain vegetation, water, or classification artifacts.
-- Modern agriculture, roads, drainage, and processing stripes produce geometric anomalies.
-- Absence from OSM or web literature does not mean a place is unknown to archaeologists or Indigenous communities.
-- This software must not be used to plan looting, trespass, or excavation.
+Anomaly detection is **not** archaeological confirmation. High `anomaly_score` values are residual/shape statistics, not calibrated probabilities that a feature is archaeological. Human review is required before any discovery claim.
 
 ## Quick start
+
+Python 3.12+ and [uv](https://docs.astral.sh/uv/):
 
 ```bash
 git clone <repo-url> terra-scout
 cd terra-scout
 uv sync --extra dev
+uv run ruff check src tests
 uv run pytest
 ```
 
-Analyze a local DEM (no API key):
+Analyze a local DEM. No API key:
 
 ```bash
 uv run terra-scout analyze --dem path/to/dem.tif --output-dir output/demo
 ```
 
-Expected outputs in `output/demo/`:
+Expected files in `output/demo/`:
 
-- `layers/hillshade.tif`, `layers/slope_degrees.tif`, `layers/local_relief.tif`
-- `candidates.geojson`
-- `preview_hillshade.png`
-- `map.html`
+| File | What it is |
+|---|---|
+| `layers/hillshade.tif` | Multidirectional hillshade |
+| `layers/slope_degrees.tif` | Horn 1981 slope |
+| `layers/local_relief.tif` | Circular-mean local relief residual |
+| `candidates.geojson` | Anomaly polygons with scores and disclaimers |
+| `preview_hillshade.png` | Quick-look image |
+| `map.html` | Local Folium map |
+| `report.txt` | Candidate list |
 
-Live USGS subset (size-capped, documented study clip):
+On the synthetic 64×64 mound fixture used by tests, `analyze` writes a `mound_like` candidate whose score definition contains `not a calibrated archaeological probability`.
 
-```bash
-uv run terra-scout datasets search --bbox "-90.07,38.655,-90.055,38.665"
-uv run terra-scout datasets download --bbox "-90.07,38.655,-90.055,38.665" --max-megabytes 20 --output-dir data/cache
+## Implemented CLI
+
+```text
+terra-scout analyze --dem FILE --output-dir DIR
+terra-scout datasets search --bbox minx,miny,maxx,maxy
+terra-scout datasets download --bbox minx,miny,maxx,maxy --max-megabytes 20 --output-dir data/cache
+terra-scout agents run --dem FILE --study-area FILE --output-dir DIR
+terra-scout dashboard --host 127.0.0.1 --port 8501
+terra-scout benchmark --config experiments/synthetic.yaml --output-dir output/benchmarks
+terra-scout version
 ```
 
-## CLI
+`datasets search` queries USGS TNM Access. Empty results mean no matching product, not an API bug. `datasets download` pulls a size-capped 3DEP ImageServer GeoTIFF and refuses payloads over `--max-megabytes`.
 
-| Command | Purpose |
-|---|---|
-| `terra-scout analyze --dem FILE --output-dir DIR` | Terrain layers + candidates |
-| `terra-scout datasets search --bbox minx,miny,maxx,maxy` | USGS TNM + 3DEP coverage |
-| `terra-scout datasets download --bbox ... --max-megabytes N` | Size-capped 3DEP export |
-| `terra-scout agents run --dem FILE --study-area FILE` | Typed swarm (LLM optional) |
-| `terra-scout dashboard` | Localhost Streamlit UI |
-| `terra-scout benchmark --config FILE` | Experiment harness |
+## Live public DEM demonstration
 
-## Ethics
+This was run against USGS 3DEP ImageServer (not a mock):
 
-Precise candidate coordinates stay on the local machine. The dashboard binds to `127.0.0.1`. Do not publish unpublished site maps.
+- Request: 400×300 float32 GeoTIFF, bbox `-90.070,38.655,-90.055,38.665` (WGS84)
+- File size: 788,288 bytes
+- `observation_kind=usgs_3dep`, valid fraction 1.0
+- Elevation range about 122–158 m
+- Conventional detector emitted 72 **unreviewed** candidates
+
+Those candidates are terrain anomalies on a well-documented public landscape. They are **not** new archaeological sites. Precise geometries were kept in a local `output/` tree and are gitignored.
+
+Reproduce:
+
+```bash
+uv run terra-scout datasets download \
+  --bbox "-90.070,38.655,-90.055,38.665" \
+  --max-megabytes 5 \
+  --output-dir data/cache
+uv run terra-scout analyze --dem data/cache/usgs_3dep_m90p0700_38p6550_m90p0550_38p6650.tif \
+  --output-dir output/demo
+```
+
+## Optional extras
+
+| Extra | Command | When |
+|---|---|---|
+| Dev | `uv sync --extra dev` | pytest + ruff |
+| LiDAR | `uv sync --extra lidar` plus system PDAL | EPT/LAS → DTM |
+| ML | `uv sync --extra ml` | future PyTorch models; none are trained here |
+
+OpenTopography and NASA Earthdata downloads need operator credentials in `.env` (see `.env.example`). They are not required for DEM analysis.
+
+Ollama / external LLMs are optional. Geospatial, detection, and skeptic tools run without them. Precise coordinates are not sent to LLM APIs unless `TERRASCOUT_SEND_PRECISE_COORDINATES_TO_LLM=true`.
+
+## Scientific limitations
+
+- Public DEM/LiDAR coverage is incomplete.
+- Bare-earth models still contain vegetation, water, and classification artifacts.
+- Agriculture, roads, drainage, and processing stripes produce geometric anomalies.
+- Absence from OSM or web literature does not mean a place is unknown.
+- Do not use this software to plan looting, trespass, or excavation.
+
+## Architecture
+
+See `docs/architecture.md`, `docs/ethics.md`, `docs/experiments.md`, and `docs/roadmap.md`.
 
 ## License
 
-MIT for original TerraScout code. Upstream geospatial datasets keep their own licenses (typically USGS public domain for 3DEP).
+MIT for original TerraScout code. USGS 3DEP data remains in the public domain under USGS terms.
