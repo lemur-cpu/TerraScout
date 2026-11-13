@@ -25,9 +25,8 @@ def export_analysis(
     output_dir.mkdir(parents=True, exist_ok=True)
     layer_dir = output_dir / "layers"
     written: dict[str, Path] = {}
-    for name in ("hillshade", "slope_degrees", "local_relief"):
-        if name in layers:
-            written[name] = write_layer_geotiff(layers[name], layer_dir / f"{name}.tif")
+    for name, layer in layers.items():
+        written[name] = write_layer_geotiff(layer, layer_dir / f"{name}.tif")
     written["preview"] = _write_preview(layers["hillshade"], output_dir / "preview_hillshade.png")
     written["geojson"] = _write_geojson(dem, detection, output_dir / "candidates.geojson")
     written["map"] = _write_html_map(dem, layers["hillshade"], detection, output_dir / "map.html")
