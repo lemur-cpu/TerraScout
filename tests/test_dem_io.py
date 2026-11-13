@@ -98,7 +98,7 @@ def test_load_dem_rejects_projected_foot_crs(tmp_path: Path) -> None:
 
 
 def test_write_synthetic_dem_fixture_is_readable(tmp_path: Path) -> None:
-    path = write_synthetic_dem(tmp_path / "check.tif", mound=False)
+    path = write_synthetic_dem(tmp_path / "check.tif", feature="none")
     with rasterio.open(path) as dataset:
         assert dataset.count == 1
         assert dataset.crs.to_epsg() == 32615
