@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -28,8 +27,8 @@ class Settings(BaseSettings):
     dashboard_host: str = "127.0.0.1"
     dashboard_port: int = 8501
 
-    opentopography_api_key: str = Field(default="", alias="OPENTOPOGRAPHY_API_KEY")
-    ollama_host: str = Field(default="", alias="OLLAMA_HOST")
+    opentopography_api_key: str = ""
+    ollama_host: str = ""
 
 
 def get_settings() -> Settings:
