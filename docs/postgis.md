@@ -1,6 +1,6 @@
 # PostGIS migration path
 
-MVP storage is SQLite (`TERRASCOUT_DATABASE_PATH`, default `./var/terra_scout.sqlite3`). Geometries are WGS84 WKT plus optional GeoJSON sidecars. This is enough for a laptop registry.
+MVP storage is SQLite next to analysis products (`output_dir/registry.sqlite3`). Geometries are WGS84 WKT plus optional GeoJSON sidecars. This is enough for a laptop registry.
 
 When a team needs concurrent editors, spatial indexes, or QGIS live layers:
 
