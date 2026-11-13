@@ -41,8 +41,17 @@ def persist_analysis(
 def analyze_loaded_dem(dem: DigitalElevationModel, output_dir: Path) -> AnalysisProducts:
     layers, detection = run_analysis(dem)
     written = persist_analysis(dem, layers, detection, output_dir)
+    from terra_scout.dashboard.manifest import write_run_manifest
+
+    if dem.source_path is not None:
+        written["run_manifest"] = write_run_manifest(
+            output_dir,
+            dem_path=dem.source_path,
+            observation_kind=dem.observation_kind,
+        )
     return AnalysisProducts(dem=dem, layers=layers, detection=detection, written=written)
 
 
 def analyze_dem(dem_path: Path, output_dir: Path) -> dict[str, Path]:
-    return analyze_loaded_dem(load_dem(dem_path), output_dir).written
+    dem = load_dem(dem_path)
+    return analyze_loaded_dem(dem, output_dir).written
