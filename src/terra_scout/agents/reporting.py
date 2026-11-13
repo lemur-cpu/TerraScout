@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from terra_scout.agents.schemas import AgentTrace, CandidateCritique, SwarmReport, ToolTrace
-from terra_scout.dashboard.traces import write_agent_traces
+from terra_scout.agents.trace_io import write_agent_traces
 from terra_scout.detection.models import CandidateFeature
 from terra_scout.io.dem import DigitalElevationModel
 

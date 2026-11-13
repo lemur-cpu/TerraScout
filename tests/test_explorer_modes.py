@@ -46,7 +46,8 @@ def test_loader_inventory_flags_manifest_and_traces_absence(
 
 def test_agent_traces_json_round_trip(tmp_path: Path) -> None:
     from terra_scout.agents.schemas import AgentTrace, ToolTrace
-    from terra_scout.dashboard.traces import load_agent_traces, write_agent_traces
+    from terra_scout.agents.trace_io import write_agent_traces
+    from terra_scout.dashboard.traces import load_agent_traces
 
     traces = [
         AgentTrace(
