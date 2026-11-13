@@ -14,6 +14,7 @@ from terra_scout.detection.models import (
     CandidateFeature,
     DetectionResult,
     FeatureCategory,
+    novelty_for,
 )
 from terra_scout.io.dem import DigitalElevationModel
 from terra_scout.provenance import ProvenanceRecord
@@ -135,6 +136,7 @@ def _components_to_candidates(
         mean_z = float(mean_residual / (np.nanstd(residual) + 1e-6))
         anomaly_score = abs(mean_z) * max(circularity, 0.05)
         category = _classify(polarity=polarity, circularity=circularity, elongation=elongation)
+        novelty_status, novelty_note = novelty_for(dem.observation_kind)
         candidates.append(
             CandidateFeature(
                 candidate_id=str(uuid.uuid4()),
@@ -157,6 +159,8 @@ def _components_to_candidates(
                     "polarity": polarity,
                 },
                 observation_kind=dem.observation_kind,
+                novelty_status=novelty_status,
+                novelty_note=novelty_note,
                 provenance=ProvenanceRecord(
                     source_path=dem.source_path,
                     observation_kind=dem.observation_kind,

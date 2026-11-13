@@ -73,6 +73,7 @@ def _write_geojson(
                     "detection_method": candidate.detection_method,
                     "review_status": candidate.review_status,
                     "observation_kind": candidate.observation_kind,
+                    "novelty_status": candidate.novelty_status,
                 },
             }
         )
@@ -83,7 +84,8 @@ def _write_geojson(
         "features": features,
         "disclaimer": (
             "Candidates are terrain anomalies, not confirmed archaeological sites. "
-            "Keep unpublished coordinates local."
+            "Keep unpublished coordinates local. "
+            "novelty_status=not_demonstrated means literature was not retrieved."
         ),
     }
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")

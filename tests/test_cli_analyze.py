@@ -37,3 +37,4 @@ def test_analyze_writes_layers_geojson_preview_and_map(
     geojson_text = (output_dir / "candidates.geojson").read_text(encoding="utf-8")
     assert "mound_like" in geojson_text
     assert "not a calibrated archaeological probability" in geojson_text
+    assert '"novelty_status": "synthetic_na"' in geojson_text
