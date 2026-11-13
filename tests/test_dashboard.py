@@ -168,6 +168,41 @@ def test_finder_copy_does_not_auto_claim_sites() -> None:
     assert "analyze-only" in SKEPTIC_EMPTY.lower()
 
 
+def test_stale_copy_module_needs_reload_to_export_new_names() -> None:
+    import importlib
+
+    import terra_scout.dashboard.copy as copy_mod
+
+    saved = copy_mod.SKEPTIC_EMPTY
+    del copy_mod.SKEPTIC_EMPTY
+    try:
+        with pytest.raises(ImportError, match="SKEPTIC_EMPTY"):
+            importlib.import_module("terra_scout.dashboard.copy")
+            from terra_scout.dashboard.copy import SKEPTIC_EMPTY as _missing
+
+            assert _missing  # pragma: no cover
+        importlib.reload(copy_mod)
+        from terra_scout.dashboard.copy import SKEPTIC_EMPTY
+
+        assert SKEPTIC_EMPTY == saved
+    finally:
+        importlib.reload(copy_mod)
+
+
+def test_dashboard_app_reloads_copy_before_named_imports() -> None:
+    text = (
+        Path(__file__).resolve().parents[1]
+        / "src"
+        / "terra_scout"
+        / "dashboard"
+        / "app.py"
+    ).read_text(encoding="utf-8")
+    reload_at = text.find("importlib.reload")
+    import_at = text.find("SKEPTIC_EMPTY")
+    assert reload_at != -1
+    assert 0 <= reload_at < import_at
+
+
 def test_console_theme_uses_field_terminal_tokens() -> None:
     from terra_scout.dashboard.theme import CONSOLE_CSS, PHOSPHOR_AMBER, TERMINAL_BG
 

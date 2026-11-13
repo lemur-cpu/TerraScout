@@ -1,30 +1,34 @@
 from __future__ import annotations
 
+import importlib
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import streamlit as st
 
-from terra_scout.dashboard.copy import (
-    ABOUT,
-    CAPTION,
-    HEADING,
-    INSPECTOR_HEADING,
-    LOOP_CAPTION,
-    PAGE_TITLE,
-    QUEUE_CAPTION,
-    SKEPTIC_EMPTY,
-    WARNING,
-)
+from terra_scout.dashboard import copy as _dashboard_copy
+from terra_scout.dashboard import review as _dashboard_review
 from terra_scout.dashboard.loader import load_analysis_directory
-from terra_scout.dashboard.review import (
-    LAYER_LABELS,
-    evidence_packet,
-    queue_label,
-    render_layer_with_candidates,
-)
 from terra_scout.dashboard.theme import CONSOLE_CSS
 from terra_scout.detection.models import ReviewStatus
+
+# Streamlit reruns this file but keeps sys.modules. Reload copy/review so a
+# hot save cannot ImportError on a name that exists on disk.
+_dashboard_copy = importlib.reload(_dashboard_copy)
+_dashboard_review = importlib.reload(_dashboard_review)
+ABOUT = _dashboard_copy.ABOUT
+CAPTION = _dashboard_copy.CAPTION
+HEADING = _dashboard_copy.HEADING
+INSPECTOR_HEADING = _dashboard_copy.INSPECTOR_HEADING
+LOOP_CAPTION = _dashboard_copy.LOOP_CAPTION
+PAGE_TITLE = _dashboard_copy.PAGE_TITLE
+QUEUE_CAPTION = _dashboard_copy.QUEUE_CAPTION
+SKEPTIC_EMPTY = _dashboard_copy.SKEPTIC_EMPTY
+WARNING = _dashboard_copy.WARNING
+LAYER_LABELS = _dashboard_review.LAYER_LABELS
+evidence_packet = _dashboard_review.evidence_packet
+queue_label = _dashboard_review.queue_label
+render_layer_with_candidates = _dashboard_review.render_layer_with_candidates
 
 REVIEW_STATUSES: tuple[ReviewStatus, ...] = (
     "unreviewed",
