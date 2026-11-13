@@ -25,3 +25,6 @@ def test_benchmark_writes_machine_readable_scores(tmp_path: Path) -> None:
     assert "conventional" in payload["approaches"]
     assert payload["approaches"]["conventional"]["true_positives"] >= 1
     assert payload["spatial_leakage"] == "none_synthetic_fixture"
+    assert payload["approaches"]["single_agent"]["used_skeptic"] is False
+    assert payload["approaches"]["single_agent"]["used_research"] is True
+    assert payload["approaches"]["swarm"]["used_skeptic"] is True
