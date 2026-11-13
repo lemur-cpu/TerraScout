@@ -4,8 +4,12 @@ from terra_scout.agents.schemas import AgentTrace, FailedRetrieval, ToolTrace
 from terra_scout.io.dem import DigitalElevationModel
 
 
-def research_context(dem: DigitalElevationModel) -> AgentTrace:
+def research_context(
+    dem: DigitalElevationModel,
+    place_name: str | None = None,
+) -> AgentTrace:
     """Literature lookup. Never fabricates sources. Skips synthetic fixtures."""
+    _ = place_name
     if dem.observation_kind == "synthetic":
         return AgentTrace(
             agent_id="research",

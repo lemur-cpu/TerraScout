@@ -32,6 +32,10 @@ def test_swarm_runs_six_specialists_without_an_llm_key(
     assert "fabricat" not in text
     research = next(trace for trace in report.agent_traces if trace.agent_id == "research")
     assert research.failed_retrievals or research.notes
+    products = tmp_path / "agents" / "products"
+    assert (products / "registry.sqlite3").exists()
+    assert (products / "candidates.geojson").exists()
+    assert not (tmp_path / "agents" / "registry.sqlite3").exists()
 
 
 def test_skeptic_records_alternative_explanations_for_candidates(
