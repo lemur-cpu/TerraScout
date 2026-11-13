@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Any, Literal, Self
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -73,16 +73,12 @@ class CandidateFeature(BaseModel):
     supporting_evidence: list[str] = Field(default_factory=list)
     contradicting_evidence: list[str] = Field(default_factory=list)
 
-    @model_validator(mode="before")
-    @classmethod
-    def default_novelty_from_observation_kind(cls, data: Any) -> Any:
-        if not isinstance(data, dict):
-            return data
-        kind = data.get("observation_kind", "unknown")
-        status, note = novelty_for(kind)
-        data.setdefault("novelty_status", status)
-        data.setdefault("novelty_note", note)
-        return data
+    @model_validator(mode="after")
+    def bind_novelty_to_observation_kind(self) -> Self:
+        status, note = novelty_for(self.observation_kind)
+        self.novelty_status = status
+        self.novelty_note = note
+        return self
 
 
 class DetectionResult(BaseModel):

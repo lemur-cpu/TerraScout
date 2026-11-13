@@ -33,6 +33,33 @@ def test_novelty_for_fails_closed_except_synthetic_fixtures() -> None:
         assert "not proof" in note.lower()
 
 
+def test_live_observation_cannot_carry_synthetic_novelty() -> None:
+    from terra_scout.detection.models import CandidateFeature
+    from terra_scout.provenance import ProvenanceRecord
+
+    candidate = CandidateFeature(
+        candidate_id="forced",
+        feature_category="mound_like",
+        geometry_wkt="POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))",
+        crs_epsg=32615,
+        area_m2=10.0,
+        perimeter_m=4.0,
+        circularity=0.8,
+        elongation=1.1,
+        orientation_degrees=0.0,
+        elevation_contrast_m=1.0,
+        local_slope_degrees=2.0,
+        anomaly_score=2.0,
+        detection_method="test",
+        observation_kind="local_user",
+        novelty_status="synthetic_na",
+        novelty_note="Synthetic fixture. Novelty does not apply.",
+        provenance=ProvenanceRecord(observation_kind="local_user"),
+    )
+    assert candidate.novelty_status == "not_demonstrated"
+    assert "not proof" in candidate.novelty_note.lower()
+
+
 def test_non_synthetic_candidates_do_not_claim_novelty(tmp_path: Path) -> None:
     import rasterio
 
