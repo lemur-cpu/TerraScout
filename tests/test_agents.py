@@ -27,6 +27,7 @@ def test_swarm_runs_six_specialists_without_an_llm_key(
         "reporting",
     ]
     assert report.llm_was_used is False
+    assert "llm_was_used=False" in report.summary
     text = report.report_path.read_text(encoding="utf-8").lower().replace("*", "")
     assert "not archaeological confirmation" in text
     assert "fabricat" not in text
