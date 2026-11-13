@@ -3,3 +3,11 @@ toolbarMode = "minimal"
 
 [browser]
 gatherUsageStats = false
+
+[theme]
+base = "dark"
+primaryColor = "#E4B44C"
+backgroundColor = "#13150F"
+secondaryBackgroundColor = "#1C2016"
+textColor = "#D5DDC4"
+font = "monospace"

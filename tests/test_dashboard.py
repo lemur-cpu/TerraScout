@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from terra_scout.analyze import analyze_dem
 
 
@@ -92,3 +94,16 @@ def test_overlay_renders_selected_candidate_on_relief_layer(
     )
     assert figure.axes
     assert figure.axes[0].has_data()
+    assert figure.get_facecolor()[:3] == pytest.approx((19 / 255, 21 / 255, 15 / 255), abs=0.02)
+
+
+def test_console_theme_uses_field_terminal_tokens() -> None:
+    from terra_scout.dashboard.theme import CONSOLE_CSS, PHOSPHOR_AMBER, TERMINAL_BG
+
+    assert PHOSPHOR_AMBER == "#E4B44C"
+    assert TERMINAL_BG == "#13150F"
+    assert "Share Tech Mono" in CONSOLE_CSS
+    assert "IBM Plex Mono" in CONSOLE_CSS
+    assert PHOSPHOR_AMBER in CONSOLE_CSS
+    assert "prefers-reduced-motion" in CONSOLE_CSS
+    assert "stDeployButton" in CONSOLE_CSS or "DeployButton" in CONSOLE_CSS

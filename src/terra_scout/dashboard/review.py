@@ -9,12 +9,13 @@ from matplotlib.figure import Figure
 from rasterio.transform import rowcol
 from shapely import wkt
 
+from terra_scout.dashboard.theme import PHOSPHOR_AMBER, PHOSPHOR_DIM, TERMINAL_BG
 from terra_scout.detection.models import CandidateFeature
 
 LAYER_LABELS = {
-    "hillshade": "Hillshade",
-    "local_relief": "Local relief",
-    "slope_degrees": "Slope",
+    "hillshade": "HILLSHADE",
+    "local_relief": "LRM",
+    "slope_degrees": "SLOPE",
     "tpi": "TPI",
 }
 
@@ -25,8 +26,8 @@ def rank_candidates(candidates: list[CandidateFeature]) -> list[CandidateFeature
 
 def queue_label(candidate: CandidateFeature) -> str:
     return (
-        f"{candidate.feature_category}  "
-        f"score={candidate.anomaly_score:.2f}  "
+        f"> {candidate.feature_category}   "
+        f"{candidate.anomaly_score:.2f}   "
         f"{candidate.review_status}"
     )
 
@@ -48,7 +49,8 @@ def render_layer_with_candidates(
             vmax = vmin + 1.0
     else:
         vmin, vmax = 0.0, 1.0
-    figure, axis = plt.subplots(figsize=(7, 7))
+    figure, axis = plt.subplots(figsize=(7, 7), facecolor=TERMINAL_BG)
+    axis.set_facecolor(TERMINAL_BG)
     axis.imshow(values, cmap="gray", vmin=vmin, vmax=vmax)
     for candidate in candidates:
         geom = wkt.loads(candidate.geometry_wkt)
@@ -61,10 +63,17 @@ def render_layer_with_candidates(
         axis.plot(
             cols,
             rows,
-            color="#9B2C2C" if selected else "#C9A227",
+            color=PHOSPHOR_AMBER if selected else PHOSPHOR_DIM,
             linewidth=2.4 if selected else 1.2,
         )
     axis.set_axis_off()
-    axis.set_title("Candidate outlines on terrain. Score is not P(archaeological).")
+    axis.set_title(
+        "OUTLINE ON TERRAIN  ·  SCORE ≠ P(ARCHAEOLOGICAL)",
+        color=PHOSPHOR_AMBER,
+        fontsize=9,
+        fontfamily="monospace",
+        loc="left",
+        pad=8,
+    )
     figure.tight_layout()
     return figure
