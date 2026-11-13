@@ -64,12 +64,18 @@ def datasets_search(
 @datasets_app.command("download")
 def datasets_download(
     bbox: str = typer.Option(..., help="minx,miny,maxx,maxy in WGS84"),
-    max_megabytes: float = typer.Option(20.0, help="Refuse downloads larger than this"),
+    max_megabytes: float | None = typer.Option(
+        None,
+        help="Refuse downloads larger than this (default: TERRASCOUT_MAX_DOWNLOAD_MEGABYTES)",
+    ),
     output_dir: Path = typer.Option(Path("data/cache"), help="Cache directory"),
 ) -> None:
     """Download a size-capped USGS 3DEP ImageServer subset."""
+    from terra_scout.config import get_settings
     from terra_scout.data.usgs import download_3dep_subset
 
+    if max_megabytes is None:
+        max_megabytes = get_settings().max_download_megabytes
     west, south, east, north = _parse_bbox(bbox)
     path = download_3dep_subset(
         west,

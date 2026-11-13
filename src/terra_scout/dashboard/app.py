@@ -32,7 +32,31 @@ else:
     if state.report_path:
         st.subheader("Evidence report")
         st.text(state.report_path.read_text(encoding="utf-8")[:8000])
-    st.caption(
-        f"Candidates: {state.candidate_count}. "
-        "Review status changes belong in the SQLite registry."
-    )
+    registry_path = analysis_dir / "registry.sqlite3"
+    if registry_path.exists():
+        from terra_scout.registry.store import CandidateStore
+
+        store = CandidateStore(registry_path)
+        st.subheader("Human review")
+        statuses: tuple[str, ...] = (
+            "unreviewed",
+            "likely_natural",
+            "likely_modern",
+            "needs_research",
+            "potential_anthropogenic_feature",
+            "expert_reviewed",
+            "rejected",
+        )
+        for candidate in store.list_candidates():
+            choice = st.selectbox(
+                f"{candidate.feature_category} {candidate.candidate_id[:8]} "
+                f"(score {candidate.anomaly_score:.2f})",
+                options=list(statuses),
+                index=list(statuses).index(candidate.review_status),
+                key=f"review-{candidate.candidate_id}",
+            )
+            if choice != candidate.review_status:
+                store.set_review_status(candidate.candidate_id, choice)  # type: ignore[arg-type]
+    else:
+        st.caption("No local registry.sqlite3 in this directory yet.")
+    st.caption(f"Candidates: {state.candidate_count}. Review stays on this machine.")
