@@ -2,7 +2,7 @@
 
 Evidence-driven research software for finding *potential* anthropogenic landscape features in public LiDAR and digital elevation models.
 
-Anomaly detection is **not** archaeological confirmation. High `anomaly_score` values are residual/shape statistics, not calibrated probabilities that a feature is archaeological. The localhost dashboard is a **candidate site finder**: it ranks geometric anomalies and attaches an evidence packet. Novelty stays `not_demonstrated` until literature is actually retrieved. A human (and, where required, an authority) confirms. Software does not.
+Anomaly detection is **not** archaeological confirmation. High `anomaly_score` values are residual/shape statistics, not calibrated probabilities that a feature is archaeological. The localhost dashboard is a three-mode explorer — **Briefing** (situation board), **Explore** (terrain workbench), **Investigate** (one candidate evidence packet + specialists). Novelty stays `not_demonstrated` until literature is actually retrieved. A human (and, where required, an authority) confirms. Software does not. Scope now is North America (USGS 3DEP); world-scale coverage is an aspiration, not this release.
 
 ## Quick start
 
