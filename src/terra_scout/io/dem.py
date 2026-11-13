@@ -6,7 +6,6 @@ from pathlib import Path
 import numpy as np
 from numpy.typing import NDArray
 from pyproj import CRS, Geod
-from rasterio.crs import CRS as RasterioCrs
 from rasterio.transform import Affine, array_bounds
 
 from terra_scout.provenance import ObservationKind, ProvenanceRecord
@@ -118,7 +117,3 @@ def _cell_size_meters(
     _, _, east_m = geod.inv(center_lon, center_lat, center_lon + pixel_width, center_lat)
     _, _, north_m = geod.inv(center_lon, center_lat, center_lon, center_lat + pixel_height)
     return (abs(east_m), abs(north_m))
-
-
-def rasterio_crs(crs: CRS) -> RasterioCrs:
-    return RasterioCrs.from_wkt(crs.to_wkt())
