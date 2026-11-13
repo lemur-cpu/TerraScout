@@ -82,7 +82,8 @@ def terrain_ruggedness_index(dem: DigitalElevationModel, window: int = 3) -> Ter
         raise ValueError("TRI window must be an odd integer >= 3")
     filled, valid = _finite_filled(dem.elevation_meters)
     mean = ndimage.uniform_filter(filled, size=window, mode="nearest")
-    values = np.sqrt(ndimage.uniform_filter((filled - mean) ** 2, size=window, mode="nearest"))
+    variance = ndimage.uniform_filter((filled - mean) ** 2, size=window, mode="nearest")
+    values = np.sqrt(np.clip(variance, 0.0, None))
     values[~valid] = np.nan
     return TerrainLayer(
         name="ruggedness",

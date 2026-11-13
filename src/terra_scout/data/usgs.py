@@ -117,31 +117,39 @@ def download_3dep_subset(
     _assert_head_within_limit(params, max_bytes, timeout_seconds)
     destination = output_dir / _subset_filename(west, south, east, north)
     headers = {"User-Agent": "terra-scout/0.1 (research; local)"}
-    with httpx.stream(
-        "GET",
-        IMAGE_SERVER_EXPORT_URL,
-        params=params,
-        timeout=timeout_seconds,
-        headers=headers,
-        follow_redirects=True,
-    ) as response:
-        response.raise_for_status()
-        content_type = response.headers.get("content-type", "")
-        if "json" in content_type and "tiff" not in content_type:
-            raise RuntimeError(f"3DEP export returned JSON instead of GeoTIFF: {content_type}")
-        downloaded = 0
-        tmp_path = destination.with_suffix(".partial")
-        with tmp_path.open("wb") as handle:
-            for chunk in response.iter_bytes(chunk_size=65536):
-                downloaded += len(chunk)
-                if downloaded > max_bytes:
-                    handle.close()
-                    tmp_path.unlink(missing_ok=True)
-                    raise DownloadLimitExceeded(
-                        f"3DEP download exceeded the {max_megabytes} megabyte cap"
-                    )
-                handle.write(chunk)
-        tmp_path.replace(destination)
+    response = None
+    last_error: Exception | None = None
+    for _attempt in range(3):
+        try:
+            response = httpx.get(
+                IMAGE_SERVER_EXPORT_URL,
+                params=params,
+                timeout=timeout_seconds,
+                headers=headers,
+                follow_redirects=True,
+            )
+            if response.status_code >= 500:
+                last_error = httpx.HTTPStatusError(
+                    f"3DEP export failed with {response.status_code}",
+                    request=response.request,
+                    response=response,
+                )
+                continue
+            response.raise_for_status()
+            break
+        except httpx.HTTPError as error:
+            last_error = error
+            response = None
+    if response is None:
+        raise RuntimeError(f"3DEP export failed after retries: {last_error}")
+    content_type = response.headers.get("content-type", "")
+    if "json" in content_type and "tiff" not in content_type:
+        raise RuntimeError(f"3DEP export returned JSON instead of GeoTIFF: {content_type}")
+    if len(response.content) > max_bytes:
+        raise DownloadLimitExceeded(
+            f"3DEP download exceeded the {max_megabytes} megabyte cap"
+        )
+    destination.write_bytes(response.content)
     _tag_observation_kind(destination)
     return destination
 
