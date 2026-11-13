@@ -4,6 +4,11 @@ from terra_scout.agents.schemas import AgentTrace, FailedRetrieval, ToolTrace
 from terra_scout.ethics import redact_coordinates
 from terra_scout.io.dem import DigitalElevationModel
 
+_NOVELTY_FAIL_CLOSED = (
+    "Novelty is not demonstrated. "
+    "A web miss must never be treated as an undocumented site."
+)
+
 
 def research_context(
     dem: DigitalElevationModel,
@@ -48,7 +53,10 @@ def research_context(
                     ),
                 )
             ],
-            notes=["Insufficient evidence for a site-specific literature summary."],
+            notes=[
+                "Insufficient evidence for a site-specific literature summary.",
+                _NOVELTY_FAIL_CLOSED,
+            ],
         )
 
     return AgentTrace(
@@ -73,6 +81,6 @@ def research_context(
         notes=[
             f"Coarse place name recorded: {coarse}.",
             "OpenAlex is not wired. No citations invented.",
-            "A web miss must never be treated as an undocumented site.",
+            _NOVELTY_FAIL_CLOSED,
         ],
     )

@@ -5,8 +5,23 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import streamlit as st
 
+from terra_scout.dashboard.copy import (
+    ABOUT,
+    CAPTION,
+    HEADING,
+    INSPECTOR_HEADING,
+    LOOP_CAPTION,
+    PAGE_TITLE,
+    QUEUE_CAPTION,
+    WARNING,
+)
 from terra_scout.dashboard.loader import load_analysis_directory
-from terra_scout.dashboard.review import LAYER_LABELS, queue_label, render_layer_with_candidates
+from terra_scout.dashboard.review import (
+    LAYER_LABELS,
+    evidence_packet,
+    queue_label,
+    render_layer_with_candidates,
+)
 from terra_scout.dashboard.theme import CONSOLE_CSS
 from terra_scout.detection.models import ReviewStatus
 
@@ -21,26 +36,21 @@ REVIEW_STATUSES: tuple[ReviewStatus, ...] = (
 )
 
 st.set_page_config(
-    page_title="TerraScout field console",
+    page_title=PAGE_TITLE,
     layout="wide",
     menu_items={
         "Get help": None,
         "Report a bug": None,
-        "About": (
-            "TerraScout field review console. "
-            "Anomaly detection is not archaeological confirmation."
-        ),
+        "About": ABOUT,
     },
 )
 st.markdown(f"<style>{CONSOLE_CSS}</style>", unsafe_allow_html=True)
 
 st.markdown('<p class="ts-masthead">TERRASCOUT</p>', unsafe_allow_html=True)
-st.title("Field review console")
-st.caption("LOCAL  ·  DEM / LiDAR  ·  HUMAN REVIEW REQUIRED  ·  NOT A SITE CLAIM")
-st.warning(
-    "LOCAL ONLY. Do not publish unpublished candidate coordinates. "
-    "Anomaly detection is not archaeological confirmation."
-)
+st.title(HEADING)
+st.caption(CAPTION)
+st.caption(LOOP_CAPTION)
+st.warning(WARNING)
 
 default_dir = Path("output/analyze")
 analysis_dir = Path(
@@ -66,18 +76,25 @@ queue, terrain = st.columns((1, 1.7), gap="large")
 selected = state.candidates[0] if state.candidates else None
 with queue:
     st.subheader("Queue")
-    st.caption("Highest residual score first. Score is not P(archaeological).")
+    st.caption(QUEUE_CAPTION)
     if not state.candidates:
-        st.write("No registry candidates in this directory.")
+        st.write("No registry candidate sites in this directory.")
     else:
         labels = [queue_label(item) for item in state.candidates]
-        chosen = st.radio("Candidates", labels, label_visibility="collapsed")
+        chosen = st.radio("Candidate sites", labels, label_visibility="collapsed")
         selected = state.candidates[labels.index(chosen)]
-        st.subheader("Inspector")
+        packet = evidence_packet(selected)
+        st.subheader(INSPECTOR_HEADING)
         st.metric("ANOMALY SCORE", f"{selected.anomaly_score:.3f}")
-        st.caption(selected.anomaly_score_definition)
+        st.caption(str(packet["score_definition"]))
+        st.write(f"CLAIM  {packet['claim']}")
         st.write(
-            f"{selected.feature_category}  ·  area {selected.area_m2:.1f} m²  ·  "
+            f"NOVELTY  {packet['novelty_status']}  ·  "
+            f"{packet['observation_kind']}  ·  {packet['feature_category']}"
+        )
+        st.caption(str(packet["novelty_note"]))
+        st.write(
+            f"area {selected.area_m2:.1f} m²  ·  "
             f"circ {selected.circularity:.2f}  ·  elong {selected.elongation:.2f}"
         )
         st.write(

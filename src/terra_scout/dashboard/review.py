@@ -24,6 +24,30 @@ def rank_candidates(candidates: list[CandidateFeature]) -> list[CandidateFeature
     return sorted(candidates, key=lambda item: item.anomaly_score, reverse=True)
 
 
+def evidence_packet(candidate: CandidateFeature) -> dict[str, object]:
+    """Inspectable facts for a candidate site. Omits WKT so packets are not a coord dump."""
+    return {
+        "claim": "candidate site — not a confirmed archaeological site",
+        "candidate_id": candidate.candidate_id,
+        "feature_category": candidate.feature_category,
+        "review_status": candidate.review_status,
+        "anomaly_score": candidate.anomaly_score,
+        "score_definition": candidate.anomaly_score_definition,
+        "observation_kind": candidate.observation_kind,
+        "novelty_status": candidate.novelty_status,
+        "novelty_note": candidate.novelty_note,
+        "area_m2": candidate.area_m2,
+        "circularity": candidate.circularity,
+        "elongation": candidate.elongation,
+        "elevation_contrast_m": candidate.elevation_contrast_m,
+        "local_slope_degrees": candidate.local_slope_degrees,
+        "alternative_explanations": list(candidate.alternative_explanations),
+        "supporting_evidence": list(candidate.supporting_evidence),
+        "contradicting_evidence": list(candidate.contradicting_evidence),
+        "loop": "scan → rank → evidence packet → human / authority",
+    }
+
+
 def queue_label(candidate: CandidateFeature) -> str:
     return (
         f"> {candidate.feature_category}   "

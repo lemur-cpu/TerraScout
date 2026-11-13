@@ -20,6 +20,7 @@ def test_dashboard_loader_reads_analyze_outputs(
     tmp_path: Path,
 ) -> None:
     from terra_scout.dashboard.loader import load_analysis_directory
+    from terra_scout.dashboard.review import evidence_packet
 
     output_dir = tmp_path / "out"
     analyze_dem(synthetic_dem_path, output_dir)
@@ -35,7 +36,13 @@ def test_dashboard_loader_reads_analyze_outputs(
     assert state.observation_kind == "synthetic"
     assert state.status_counts.get("unreviewed", 0) >= 1
     assert "unreviewed" in state.message.lower()
+    assert "candidate site" in state.message.lower()
     assert "not archaeological confirmation" in state.message.lower()
+    packet = evidence_packet(state.candidates[0])
+    assert packet["novelty_status"] == "synthetic_na"
+    assert "geometry_wkt" not in packet
+    assert "candidate site" in str(packet["claim"]).lower()
+    assert "not a calibrated archaeological probability" in packet["score_definition"].lower()
     from terra_scout.registry.store import CandidateStore
 
     registry = CandidateStore(output_dir / "registry.sqlite3")
@@ -45,6 +52,51 @@ def test_dashboard_loader_reads_analyze_outputs(
     refreshed = load_analysis_directory(output_dir)
     assert refreshed.status_counts.get("needs_research") == 1
     assert refreshed.status_counts.get("unreviewed", 0) == 0
+
+
+def test_queue_message_names_candidate_sites() -> None:
+    from terra_scout.dashboard.loader import queue_message
+
+    message = queue_message({"unreviewed": 3}, 5)
+    assert "3 unreviewed of 5 candidate sites" in message
+    assert "not archaeological confirmation" in message.lower()
+
+
+def test_evidence_packet_omits_geometry_and_states_novelty() -> None:
+    from terra_scout.dashboard.review import evidence_packet
+    from terra_scout.detection.models import CandidateFeature
+    from terra_scout.provenance import ProvenanceRecord
+
+    packet = evidence_packet(
+        CandidateFeature(
+            candidate_id="c1",
+            feature_category="mound_like",
+            geometry_wkt="POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))",
+            crs_epsg=32615,
+            area_m2=10.0,
+            perimeter_m=4.0,
+            circularity=0.8,
+            elongation=1.1,
+            orientation_degrees=0.0,
+            elevation_contrast_m=1.0,
+            local_slope_degrees=2.0,
+            anomaly_score=2.4,
+            detection_method="test",
+            observation_kind="local_user",
+            novelty_status="not_demonstrated",
+            novelty_note=(
+                "Literature was not retrieved. Novelty is not demonstrated. "
+                "A missing record is not proof the place is unknown."
+            ),
+            provenance=ProvenanceRecord(observation_kind="local_user"),
+        )
+    )
+    assert packet["novelty_status"] == "not_demonstrated"
+    assert "not demonstrated" in packet["novelty_note"].lower()
+    assert "not proof" in packet["novelty_note"].lower()
+    assert "geometry_wkt" not in packet
+    assert "POLYGON" not in str(packet.values())
+    assert packet["anomaly_score"] == 2.4
 
 
 def test_ranked_queue_orders_by_score_descending() -> None:
@@ -95,6 +147,22 @@ def test_overlay_renders_selected_candidate_on_relief_layer(
     assert figure.axes
     assert figure.axes[0].has_data()
     assert figure.get_facecolor()[:3] == pytest.approx((19 / 255, 21 / 255, 15 / 255), abs=0.02)
+
+
+def test_finder_copy_does_not_auto_claim_sites() -> None:
+    from terra_scout.dashboard.copy import (
+        ABOUT,
+        CAPTION,
+        HEADING,
+        LOOP_CAPTION,
+        WARNING,
+    )
+
+    assert "candidate site finder" in HEADING.lower()
+    assert "human confirms" in CAPTION.lower()
+    assert "not a new site" in WARNING.lower()
+    assert "novelty is not demonstrated" in ABOUT.lower()
+    assert "scan" in LOOP_CAPTION.lower() and "human" in LOOP_CAPTION.lower()
 
 
 def test_console_theme_uses_field_terminal_tokens() -> None:

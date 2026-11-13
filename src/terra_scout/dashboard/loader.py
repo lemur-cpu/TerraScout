@@ -36,7 +36,7 @@ class DashboardState:
 def queue_message(status_counts: dict[str, int], total: int) -> str:
     unreviewed = status_counts.get("unreviewed", 0)
     return (
-        f"{unreviewed} unreviewed of {total} candidates. "
+        f"{unreviewed} unreviewed of {total} candidate sites. "
         "Not archaeological confirmation."
     )
 

@@ -60,6 +60,8 @@ def test_research_without_place_name_records_failed_retrieval(tmp_path: Path) ->
     assert trace.citations == []
     assert trace.failed_retrievals
     assert "place name" in trace.failed_retrievals[0].reason.lower()
+    notes = " ".join(trace.notes).lower()
+    assert "novelty is not demonstrated" in notes
 
 
 def test_research_with_place_name_does_not_invent_citations(tmp_path: Path) -> None:
