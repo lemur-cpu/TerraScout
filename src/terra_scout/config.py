@@ -13,7 +13,6 @@ class Settings(BaseSettings):
     )
 
     cache_dir: Path = Path("./data/cache")
-    database_path: Path = Path("./var/terra_scout.sqlite3")
     output_dir: Path = Path("./output")
     max_download_megabytes: float = 50.0
     max_llm_tokens: int = 8000

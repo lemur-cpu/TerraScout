@@ -179,8 +179,6 @@ def _elongation(region: object) -> float:
 
 def _classify(*, polarity: str, circularity: float, elongation: float) -> FeatureCategory:
     if polarity == "negative":
-        if elongation >= 3.0:
-            return "ditch_or_depression"
         return "ditch_or_depression"
     if elongation >= 3.5:
         return "linear_embankment"

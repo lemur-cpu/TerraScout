@@ -1,13 +1,10 @@
 from __future__ import annotations
 
-from pathlib import Path
-
 from terra_scout.agents.schemas import AgentTrace, ToolTrace
-from terra_scout.io.dem import load_dem
+from terra_scout.io.dem import DigitalElevationModel
 
 
-def inspect_dem(dem_path: Path) -> AgentTrace:
-    dem = load_dem(dem_path)
+def inspect_dem(dem: DigitalElevationModel) -> AgentTrace:
     summary = (
         f"crs={dem.crs.to_string()} shape={dem.elevation_meters.shape} "
         f"valid_fraction={dem.valid_fraction:.3f} "
@@ -25,7 +22,7 @@ def inspect_dem(dem_path: Path) -> AgentTrace:
         tool_calls=[
             ToolTrace(
                 tool_name="load_dem",
-                arguments={"path": str(dem_path)},
+                arguments={"crs": dem.crs.to_string()},
                 output_summary=summary,
                 succeeded=True,
             )

@@ -51,7 +51,7 @@ def write_report(
             lines.append(f"- failed retrieval: {failed.source}: {failed.reason}")
     report_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return SwarmReport(
-        summary=f"{len(candidates)} unreviewed candidates; LLM unused={not llm_was_used}",
+        summary=f"{len(candidates)} unreviewed candidates; llm_was_used={llm_was_used}",
         report_path=report_path,
         agent_traces=traces,
         candidates=candidates,

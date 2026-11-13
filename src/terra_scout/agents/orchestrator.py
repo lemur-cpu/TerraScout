@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from terra_scout.agents.detection import run_detection
+from terra_scout.agents.detection import trace_detection
 from terra_scout.agents.geospatial import inspect_dem
 from terra_scout.agents.llm import LanguageModelClient
 from terra_scout.agents.reporting import write_report
@@ -10,10 +10,8 @@ from terra_scout.agents.research import research_context
 from terra_scout.agents.schemas import AgentTrace, SwarmReport, ToolTrace
 from terra_scout.agents.skeptic import critique_candidates
 from terra_scout.agents.verification import verify_candidates
+from terra_scout.analyze import persist_analysis, run_analysis
 from terra_scout.io.dem import load_dem
-from terra_scout.registry.store import CandidateStore
-from terra_scout.terrain.layers import compute_terrain_layers
-from terra_scout.viz.export import export_analysis
 
 
 def run_swarm(
@@ -21,24 +19,23 @@ def run_swarm(
     dem_path: Path,
     study_area_path: Path | None,
     output_dir: Path,
+    place_name: str | None = None,
 ) -> SwarmReport:
     """Deterministic specialist swarm. LLM is optional and unused by default."""
     del study_area_path  # geometry stays local; not forwarded to external APIs
     output_dir.mkdir(parents=True, exist_ok=True)
     llm = LanguageModelClient()
     llm_was_used = llm.complete("status") is not None
-    geospatial_trace = inspect_dem(dem_path)
     dem = load_dem(dem_path)
-    detection, detection_trace = run_detection(dem)
-    research_trace = research_context(dem)
+    geospatial_trace = inspect_dem(dem)
+    layers, detection = run_analysis(dem)
+    detection_trace = trace_detection(detection)
+    research_trace = research_context(dem, place_name=place_name)
     critiques = critique_candidates(dem, detection.candidates)
     for candidate, critique in zip(detection.candidates, critiques, strict=False):
         candidate.alternative_explanations = critique.alternative_explanations
     verification_trace = verify_candidates(dem, detection.candidates)
-    layers = compute_terrain_layers(dem)
-    export_analysis(dem, layers, detection, output_dir / "products")
-    store = CandidateStore(output_dir / "registry.sqlite3")
-    store.add_candidates(detection.candidates)
+    persist_analysis(dem, layers, detection, output_dir / "products")
     traces = [
         geospatial_trace,
         detection_trace,
@@ -49,8 +46,8 @@ def run_swarm(
     report = write_report(
         dem=dem,
         candidates=detection.candidates,
-        critiques=critiques,
         traces=traces,
+        critiques=critiques,
         output_dir=output_dir,
         llm_was_used=llm_was_used,
     )

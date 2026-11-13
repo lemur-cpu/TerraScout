@@ -93,11 +93,21 @@ def agents_run(
     dem: Path = typer.Option(..., exists=True, readable=True),
     study_area: Path | None = typer.Option(None, help="Optional GeoJSON polygon"),
     output_dir: Path = typer.Option(Path("output/agents")),
+    place_name: str | None = typer.Option(
+        None,
+        "--place-name",
+        help="Coarse place name for literature notes. Never a coordinate substitute.",
+    ),
 ) -> None:
     """Run geospatial, detection, research, skeptic, verification, and reporting agents."""
     from terra_scout.agents.orchestrator import run_swarm
 
-    report = run_swarm(dem_path=dem, study_area_path=study_area, output_dir=output_dir)
+    report = run_swarm(
+        dem_path=dem,
+        study_area_path=study_area,
+        output_dir=output_dir,
+        place_name=place_name,
+    )
     console.print(report.summary)
     console.print(f"Wrote {report.report_path}")
 
