@@ -1,0 +1,9 @@
+name: synthetic-mound
+observation_kind: synthetic
+approaches:
+  - conventional
+  - single_agent
+  - swarm
+notes: >
+  Synthetic Gaussian mound on a 64 m grid. This is a software fixture,
+  not a scientific observation of a landscape.
