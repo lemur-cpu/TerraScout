@@ -62,10 +62,18 @@ CONSOLE_CSS = f"""
 [data-testid="stSidebar"] {{
   background: var(--ts-panel);
   border-right: 1px solid var(--ts-line);
+  font-family: "IBM Plex Mono", monospace;
 }}
 
-[data-testid="stSidebar"] * {{
-  font-family: "IBM Plex Mono", monospace !important;
+/* Do not force mono onto Material icon glyphs — that prints names like
+   keyboard_double_arrow_left instead of the collapse control. */
+[data-testid="stSidebar"] [data-testid="stIconMaterial"],
+[data-testid="stSidebar"] .material-symbols-rounded,
+[data-testid="stSidebar"] .material-symbols-outlined,
+[data-testid="stSidebar"] span[class*="material-symbols"] {{
+  font-family: "Material Symbols Rounded", "Material Symbols Outlined",
+    sans-serif !important;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
 }}
 
 [data-testid="stAlert"] {{

@@ -1,40 +1,42 @@
 from __future__ import annotations
 
-PAGE_TITLE = "TerraScout explorer"
+PAGE_TITLE = "TerraScout"
 HEADING = "TerraScout"
-CAPTION = "LOCAL  ·  NORTH AMERICA  ·  DEM / LiDAR  ·  HUMAN CONFIRMS  ·  NOVELTY NOT AUTO-CLAIMED"
+CAPTION = "Local LiDAR / DEM explorer for North America"
 WARNING = (
-    "LOCAL ONLY. Do not publish unpublished candidate coordinates. "
-    "Anomaly detection is not archaeological confirmation. "
+    "Candidates stay on this machine. Do not publish unpublished coordinates. "
+    "Terrain anomalies are candidates for review — not confirmed archaeological sites. "
     "A missing literature record is not a new site."
 )
-LOOP_CAPTION = "Loop: scan → rank → evidence packet → human / authority."
+LOOP_CAPTION = "Workflow: scan terrain → rank candidates → review evidence → human decision."
 BRIEFING_HEADING = "Briefing"
-BRIEFING_CAPTION = "Situation board for one analysis directory. Not GIS."
+BRIEFING_CAPTION = (
+    "Overview of this study area: what was scanned, candidate counts, and swarm status."
+)
 EXPLORE_HEADING = "Explore"
 EXPLORE_CAPTION = (
-    "Terrain-first workbench. Ranked queue is not this screen. "
-    "Geometric detection is not archaeology."
+    "Walk the terrain layers. Bookmark a place, or run geometric detection on this DEM."
 )
 INVESTIGATE_HEADING = "Investigate"
-INVESTIGATE_CAPTION = "One candidate site. Evidence packet and specialists. Not a confirmed site."
+INVESTIGATE_CAPTION = (
+    "One candidate at a time: evidence packet, specialist notes, and your review status."
+)
 INSPECTOR_HEADING = "Evidence packet"
 QUEUE_CAPTION = (
-    "Ranked candidate sites for Investigate. Human confirms. "
-    "Score is not P(archaeological)."
+    "Candidates ranked by anomaly score (a shape/residual statistic, not site probability)."
 )
 SKEPTIC_EMPTY = (
-    "No skeptic notes on this row. Analyze-only runs do not run the skeptic."
+    "No skeptic notes on this candidate. Analyze-only runs do not run the skeptic agent."
 )
 TRACES_EMPTY = (
-    "No agent_traces.json in this directory. Run `terra-scout agents` for specialist traces."
+    "No specialist traces yet. Run `terra-scout agents` to attach the six-agent report."
 )
 DEM_MISSING = (
-    "DEM path unresolved. Set DEM PATH in the sidebar or re-run analyze/agents "
-    "so run_manifest.json is written."
+    "DEM path not found. Set DEM PATH in the sidebar, or re-run analyze/agents "
+    "so run_manifest.json records the DEM."
 )
 ABOUT = (
-    "TerraScout explorer (Briefing / Explore / Investigate). "
+    "TerraScout helps you find and review terrain candidate sites from local DEM/LiDAR. "
     "Anomaly detection is not archaeological confirmation. "
     "Novelty is not demonstrated until literature is actually retrieved."
 )

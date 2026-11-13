@@ -163,17 +163,19 @@ def test_finder_copy_does_not_auto_claim_sites() -> None:
     )
 
     assert "terrascout" in HEADING.lower()
-    assert "human confirms" in CAPTION.lower()
     assert "north america" in CAPTION.lower()
+    assert "lidar" in CAPTION.lower() or "dem" in CAPTION.lower()
     assert "not a new site" in WARNING.lower()
+    assert "not confirmed archaeological" in WARNING.lower()
     assert "novelty is not demonstrated" in ABOUT.lower()
-    assert "briefing" in ABOUT.lower() and "explore" in ABOUT.lower()
+    assert "candidate" in ABOUT.lower()
     assert "scan" in LOOP_CAPTION.lower() and "human" in LOOP_CAPTION.lower()
     assert "skeptic" in SKEPTIC_EMPTY.lower()
     assert "analyze-only" in SKEPTIC_EMPTY.lower()
     assert BRIEFING_HEADING == "Briefing"
-    assert "ranked queue is not this screen" in EXPLORE_CAPTION.lower()
-    assert "not a confirmed site" in INVESTIGATE_CAPTION.lower()
+    assert "terrain" in EXPLORE_CAPTION.lower()
+    assert "ranked queue is not this screen" not in EXPLORE_CAPTION.lower()
+    assert "evidence packet" in INVESTIGATE_CAPTION.lower()
 
 
 def test_stale_copy_module_needs_reload_to_export_new_names() -> None:

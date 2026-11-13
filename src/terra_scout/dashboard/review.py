@@ -92,7 +92,7 @@ def render_layer_with_candidates(
         )
     axis.set_axis_off()
     axis.set_title(
-        "OUTLINE ON TERRAIN  ·  SCORE ≠ P(ARCHAEOLOGICAL)",
+        "Candidate outline on terrain  ·  score is not site probability",
         color=PHOSPHOR_AMBER,
         fontsize=9,
         fontfamily="monospace",
