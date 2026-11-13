@@ -34,3 +34,27 @@ _Avoid_: confidence, site probability
 
 A candidate this run had not already recorded. Not a claim that archaeologists or Indigenous communities do not know the place.
 _Avoid_: undocumented, unknown site, new site (unqualified)
+
+## Briefing
+
+Dashboard mode: situation board for one analysis directory (counts, inventory, swarm summary, ethics). Not GIS.
+_Code_: Streamlit Briefing page
+_Avoid_: home map, queue-as-product
+
+## Explore
+
+Dashboard mode: terrain-first workbench (layers, local map, bookmark, optional full-DEM geometric detect). Ranked queue is not this screen’s identity.
+_Code_: Streamlit Explore page
+_Avoid_: finder queue, candidate list as primary UI
+
+## Investigate
+
+Dashboard mode: one candidate site — evidence packet, specialist traces, novelty fail-closed, human review status.
+_Code_: Streamlit Investigate page
+_Avoid_: confirmed site, discovery claim
+
+## Human bookmark
+
+A candidate site a human nominated from Explore (point → buffer), not from the geometric detector.
+_Code_: `detection_method="human_bookmark"`
+_Avoid_: new site, confirmed site, automatic discovery
