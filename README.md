@@ -2,7 +2,7 @@
 
 Evidence-driven research software for finding *potential* anthropogenic landscape features in public LiDAR and digital elevation models.
 
-Anomaly detection is **not** archaeological confirmation. High `anomaly_score` values are residual/shape statistics, not calibrated probabilities that a feature is archaeological. Human review is required before any discovery claim.
+Anomaly detection is **not** archaeological confirmation. High `anomaly_score` values are residual/shape statistics, not calibrated probabilities that a feature is archaeological. The localhost dashboard is a **candidate site finder**: it ranks geometric anomalies and attaches an evidence packet. Novelty stays `not_demonstrated` until literature is actually retrieved. A human (and, where required, an authority) confirms. Software does not.
 
 ## Quick start
 

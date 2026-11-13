@@ -14,9 +14,15 @@ _Avoid_: auto-confirmed, model-validated site
 
 ## Evidence packet
 
-The inspectable facts attached to a candidate site: residual score and its definition, geometry metrics, provenance/`observation_kind`, and skeptic alternatives.
-_Code_: fields on `CandidateFeature`
+The inspectable facts attached to a candidate site: residual score and its definition, geometry metrics, provenance/`observation_kind`, novelty status, and skeptic alternatives. Omits WKT so it is not a coordinate dump.
+_Code_: `evidence_packet()`
 _Avoid_: probability, confidence, P(archaeological)
+
+## Novelty not demonstrated
+
+Literature was not actually retrieved for this candidate. Fail closed. Absence from a web search or register is not evidence that archaeologists or Indigenous communities do not know the place.
+_Code_: `novelty_status="not_demonstrated"`
+_Avoid_: undocumented, unknown site, new site, not in INAH/OSM therefore new
 
 ## Anomaly score
 

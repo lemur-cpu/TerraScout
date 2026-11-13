@@ -24,7 +24,8 @@ study area / local DEM
   agent swarm ── geospatial, detection, research, skeptic, verification, reporting
         │
         ▼
-  dashboard / CLI / benchmark
+  dashboard  ── candidate site finder: rank → evidence packet → human / authority
+  CLI / benchmark
 ```
 
 ## Replaceable interfaces

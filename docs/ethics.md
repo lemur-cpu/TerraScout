@@ -15,6 +15,7 @@ Potentially undocumented archaeological features are sensitive even when they ar
 
 - Classify a candidate as a newly discovered archaeological site.
 - Treat missing web records as proof that Indigenous communities or archaeologists do not know a place.
+- Set `novelty_status` to anything other than `not_demonstrated` (or `synthetic_na` on fixtures) unless literature was actually retrieved.
 - Emit instructions for digging, collecting artifacts, or entering land without permission.
 - Send precise coordinates to external LLM APIs unless the operator explicitly opts in.
 
