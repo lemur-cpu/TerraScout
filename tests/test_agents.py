@@ -81,9 +81,9 @@ def test_agents_run_accepts_place_name_flag(
     synthetic_dem_path: Path,
     tmp_path: Path,
 ) -> None:
-        from typer.testing import CliRunner
+    from typer.testing import CliRunner
 
-        from terra_scout.cli import app
+    from terra_scout.cli import app
 
     result = CliRunner().invoke(
         app,
