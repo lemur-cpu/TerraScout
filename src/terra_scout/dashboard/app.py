@@ -4,7 +4,6 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import streamlit as st
-import streamlit.components.v1 as components
 
 from terra_scout.dashboard.loader import load_analysis_directory
 from terra_scout.dashboard.review import LAYER_LABELS, queue_label, render_layer_with_candidates
@@ -124,7 +123,7 @@ with terrain:
 if state.map_path:
     st.subheader("Local map")
     st.caption("Stays on this machine. Do not publish unpublished coordinates.")
-    components.html(state.map_path.read_text(encoding="utf-8"), height=420, scrolling=False)
+    st.iframe(state.map_path, height=420)
 
 if state.report_path:
     with st.expander("Text evidence report"):
