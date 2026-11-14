@@ -25,22 +25,23 @@ def render_masthead(copy_mod) -> None:
     st.warning(copy_mod.WARNING)
 
 
-def render_sidebar(copy_mod) -> tuple[Path, str | None]:
+def default_data_path() -> str:
+    """Prefer an existing USGS study output when present."""
     study = Path("output/study")
-    default_name = "output/study" if (study / "registry.sqlite3").exists() else "output/analyze"
-    default_dir = Path(st.session_state.get("ts_data_path", default_name))
+    if (study / "registry.sqlite3").exists():
+        return "output/study"
+    return "output/analyze"
+
+
+def render_sidebar(copy_mod) -> tuple[Path, str | None]:
+    # key-only widgets: passing value= with key= resets the field on page switches.
     if "ts_data_path" not in st.session_state:
-        st.session_state.ts_data_path = str(default_dir)
-    analysis_dir = Path(
-        st.sidebar.text_input(
-            "DATA PATH",
-            value=st.session_state.ts_data_path,
-            key="ts_data_path",
-        )
-    )
+        st.session_state.ts_data_path = default_data_path()
+    if "ts_dem_override" not in st.session_state:
+        st.session_state.ts_dem_override = ""
+    analysis_dir = Path(st.sidebar.text_input("DATA PATH", key="ts_data_path"))
     dem_override = st.sidebar.text_input(
         "DEM PATH (override)",
-        value="",
         key="ts_dem_override",
         help="Used when run_manifest.json is missing or wrong.",
     )

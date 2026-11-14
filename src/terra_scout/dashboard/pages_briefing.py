@@ -64,50 +64,50 @@ def render_briefing(
 
 
 def _render_acquire_panel(copy_mod, *, analysis_dir: Path, switch_explore) -> None:
+    del analysis_dir
     st.markdown(f"**{copy_mod.ACQUIRE_HEADING}**")
     st.caption(copy_mod.ACQUIRE_CAPTION)
-    st.info(copy_mod.ACQUIRE_NOTE)
-    if st.button("Load demo bbox", help=copy_mod.ACQUIRE_DEMO_HELP):
-        st.session_state["ts_acq_west"] = DEMO_BBOX[0]
-        st.session_state["ts_acq_south"] = DEMO_BBOX[1]
-        st.session_state["ts_acq_east"] = DEMO_BBOX[2]
-        st.session_state["ts_acq_north"] = DEMO_BBOX[3]
-        st.rerun()
-    cols = st.columns(4)
-    west = cols[0].number_input(
-        "west", value=float(st.session_state.get("ts_acq_west", DEMO_BBOX[0])), key="ts_acq_west"
-    )
-    south = cols[1].number_input(
-        "south",
-        value=float(st.session_state.get("ts_acq_south", DEMO_BBOX[1])),
-        key="ts_acq_south",
-    )
-    east = cols[2].number_input(
-        "east", value=float(st.session_state.get("ts_acq_east", DEMO_BBOX[2])), key="ts_acq_east"
-    )
-    north = cols[3].number_input(
-        "north",
-        value=float(st.session_state.get("ts_acq_north", DEMO_BBOX[3])),
-        key="ts_acq_north",
-    )
-    settings = get_settings()
-    output_dir = Path(
-        st.text_input(
-            "Output directory",
-            value=str(st.session_state.get("ts_acquire_output", "output/study")),
-            key="ts_acquire_output",
+    st.caption(copy_mod.ACQUIRE_NOTE)
+
+    defaults = {
+        "ts_acq_west": DEMO_BBOX[0],
+        "ts_acq_south": DEMO_BBOX[1],
+        "ts_acq_east": DEMO_BBOX[2],
+        "ts_acq_north": DEMO_BBOX[3],
+        "ts_acquire_output": "output/study",
+    }
+    for key, value in defaults.items():
+        if key not in st.session_state:
+            st.session_state[key] = value
+    if "ts_acquire_max_mb" not in st.session_state:
+        st.session_state.ts_acquire_max_mb = float(
+            min(get_settings().max_download_megabytes, 5.0)
         )
-    )
+
+    if st.button("Load demo bbox", help=copy_mod.ACQUIRE_DEMO_HELP):
+        st.session_state.ts_acq_west = DEMO_BBOX[0]
+        st.session_state.ts_acq_south = DEMO_BBOX[1]
+        st.session_state.ts_acq_east = DEMO_BBOX[2]
+        st.session_state.ts_acq_north = DEMO_BBOX[3]
+        st.rerun()
+
+    cols = st.columns(4)
+    west = cols[0].number_input("West", format="%.6f", key="ts_acq_west")
+    south = cols[1].number_input("South", format="%.6f", key="ts_acq_south")
+    east = cols[2].number_input("East", format="%.6f", key="ts_acq_east")
+    north = cols[3].number_input("North", format="%.6f", key="ts_acq_north")
+
+    settings = get_settings()
+    output_dir = Path(st.text_input("Output directory", key="ts_acquire_output"))
     max_mb = st.number_input(
-        "Max download MB",
-        min_value=0.1,
-        value=float(settings.max_download_megabytes),
-        step=1.0,
+        "Max download (MB)",
+        min_value=0.5,
+        step=0.5,
         key="ts_acquire_max_mb",
     )
-    if st.button("Download 3DEP + analyze", type="primary"):
+    if st.button("Download USGS 3DEP and analyze", type="primary"):
         try:
-            with st.spinner("Downloading 3DEP and running analyze…"):
+            with st.spinner("Downloading DEM and running detection…"):
                 result = acquire_and_analyze(
                     west=float(west),
                     south=float(south),
@@ -122,7 +122,9 @@ def _render_acquire_panel(copy_mod, *, analysis_dir: Path, switch_explore) -> No
             return
         st.session_state.ts_data_path = str(result.output_dir)
         st.success(
-            f"Acquire finished ({result.observation_kind}, {result.candidate_count} candidates)."
+            f"Wrote {result.candidate_count} candidate site(s) to `{result.output_dir}` "
+            f"from `{result.dem_path.name}` ({result.observation_kind}). "
+            "Not archaeological confirmation."
         )
         st.rerun()
     if switch_explore is not None and st.button("Open Explore"):
