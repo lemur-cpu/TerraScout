@@ -56,8 +56,26 @@ def test_render_coverage_runs_without_streamlit_ui(tmp_path: Path, monkeypatch) 
         def number_input(self, *_a, **_k):
             return 1
 
+        def checkbox(self, *_a, **_k) -> bool:
+            return False
+
         def button(self, *_a, **_k) -> bool:
             return False
+
+        def multiselect(self, *_a, **_k):
+            return []
+
+        def selectbox(self, *_a, **_k):
+            opts = _k.get("options") or (_a[1] if len(_a) > 1 else None)
+            if opts:
+                return opts[0]
+            return None
+
+        def info(self, *_a, **_k) -> None:
+            pass
+
+        def success(self, *_a, **_k) -> None:
+            pass
 
         def dataframe(self, *_a, **_k) -> None:
             pass

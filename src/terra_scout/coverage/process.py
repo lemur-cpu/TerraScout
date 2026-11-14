@@ -8,6 +8,16 @@ from terra_scout.coverage.index import CoverageIndex
 from terra_scout.dashboard.acquire import acquire_and_analyze
 from terra_scout.dashboard.manifest import write_run_manifest
 from terra_scout.data.usgs import DownloadLimitExceeded
+from terra_scout.io.dem import DemValidationError
+
+_SKIP_MARKERS = (
+    "no coverage",
+    "no data",
+    "nodata",
+    "no finite elevation",
+    "json instead of geotiff",
+    "instead of geotiff",
+)
 
 
 @dataclass(frozen=True)
@@ -35,9 +45,17 @@ def _pin_dem(
     return dest
 
 
+def _prepare_study_dir(study_dir: Path) -> None:
+    if study_dir.exists():
+        shutil.rmtree(study_dir)
+    study_dir.mkdir(parents=True, exist_ok=True)
+
+
 def _failure_status(error: BaseException) -> str:
-    message = str(error)
-    if "no coverage" in message.lower():
+    if isinstance(error, DemValidationError) or type(error).__name__ == "DemValidationError":
+        return "skipped"
+    message = str(error).lower()
+    if any(marker in message for marker in _SKIP_MARKERS):
         return "skipped"
     return "failed"
 
@@ -62,6 +80,7 @@ def process_next(
 
     for tile in tiles:
         study_dir = tiles_root / "tiles" / tile.tile_id
+        _prepare_study_dir(study_dir)
         try:
             result = acquire_and_analyze(
                 west=tile.west,

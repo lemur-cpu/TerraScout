@@ -5,6 +5,7 @@ from pathlib import Path
 import streamlit as st
 
 from terra_scout.config import get_settings
+from terra_scout.coverage.grid import parse_tile_id
 from terra_scout.coverage.index import CoverageIndex
 from terra_scout.coverage.process import process_next
 from terra_scout.dashboard.shell import queue_data_path
@@ -45,8 +46,13 @@ def render_coverage(
         value=float(settings.max_download_megabytes),
     )
 
+    allow_rescan_seed = st.checkbox(
+        "Allow re-scan when seeding demo (re-queue scanned demo cells)",
+        value=False,
+    )
+
     if st.button("Seed demo tiles"):
-        added = index.enqueue_demo_seed()
+        added = index.enqueue_demo_seed(allow_scanned=allow_rescan_seed)
         st.success(f"Queued {added} demo tile(s).")
         st.rerun()
 
@@ -66,6 +72,57 @@ def render_coverage(
         st.rerun()
 
     tiles = index.list_tiles(limit=COVERAGE_TABLE_LIMIT)
+
+    failed_skipped_ids = sorted(
+        tile.tile_id for tile in tiles if tile.status in ("failed", "skipped")
+    )
+    if failed_skipped_ids:
+        requeue_failed = st.multiselect(
+            "Re-queue failed or skipped tiles",
+            options=failed_skipped_ids,
+            key="cov_requeue_failed_skipped",
+        )
+        if st.button("Re-queue selected failed/skipped"):
+            added = 0
+            for tid in requeue_failed:
+                ix, iy = parse_tile_id(tid)
+                if index.enqueue(ix, iy):
+                    added += 1
+            st.success(f"Queued {added} tile(s).")
+            st.rerun()
+
+    queued_ids = sorted(tile.tile_id for tile in tiles if tile.status == "queued")
+    if queued_ids:
+        skip_queued_pick = st.multiselect(
+            "Skip queued tiles (mark skipped without downloading)",
+            options=queued_ids,
+            key="cov_skip_queued",
+        )
+        if st.button("Skip selected queued"):
+            n = 0
+            for tid in skip_queued_pick:
+                ix, iy = parse_tile_id(tid)
+                if index.skip(ix, iy, message="skipped from board"):
+                    n += 1
+            st.success(f"Skipped {n} tile(s).")
+            st.rerun()
+
+    scanned_ids = sorted(tile.tile_id for tile in tiles if tile.status == "scanned")
+    if scanned_ids:
+        rescan_scanned = st.multiselect(
+            "Re-scan scanned tiles (clears prior study folder on next run)",
+            options=scanned_ids,
+            key="cov_rescan_scanned",
+        )
+        if st.button("Re-queue selected scanned for re-scan"):
+            added = 0
+            for tid in rescan_scanned:
+                ix, iy = parse_tile_id(tid)
+                if index.enqueue(ix, iy, allow_scanned=True):
+                    added += 1
+            st.success(f"Queued {added} tile(s) for re-scan.")
+            st.rerun()
+
     if tiles:
         rows = [
             {
