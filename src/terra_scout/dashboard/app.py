@@ -75,7 +75,15 @@ def _run_coverage() -> None:
 def _run_swarm() -> None:
     copy_mod = importlib.reload(_dashboard_copy)
     _dashboard_shell.render_masthead(copy_mod)
-    pages_swarm.render_swarm(copy_mod, switch_scan=lambda: _switch_to(scan_page))
+    analysis_dir, _dem_override = _dashboard_shell.render_sidebar(copy_mod)
+    pages_swarm.render_swarm(
+        copy_mod,
+        coverage_root=pages_coverage.COVERAGE_DEFAULT_ROOT,
+        data_path=analysis_dir,
+        switch_scan=lambda: _switch_to(scan_page),
+        switch_investigate=lambda: _switch_to(investigate_page),
+        switch_briefing=lambda: _switch_to(briefing_page),
+    )
 
 
 def _run_review() -> None:

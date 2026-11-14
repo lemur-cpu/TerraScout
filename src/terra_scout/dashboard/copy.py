@@ -10,12 +10,12 @@ WARNING = (
 )
 HOME_HEADING = "North America operator loop"
 HOME_CAPTION = (
-    "Scan CONUS tiles, monitor swarm progress (later), review qualified flags, "
+    "Scan CONUS tiles, monitor the local agent swarm, review qualified flags (later), "
     "or explore terrain directly on this machine."
 )
 HOME_LOOP = (
     "**Scan** queues USGS 3DEP tiles on a fixed CONUS grid. "
-    "**Swarm** (Slice B) will attach the CLI agent swarm to scanned terrain. "
+    "**Swarm** starts or attaches the localhost agent swarm on a scanned study. "
     "**Review** (Slice C) will surface research-gated candidate flags. "
     "**Explore** is the terrain workbench for hillshade, LRM, and geometric detect."
 )
@@ -24,18 +24,42 @@ HOME_ETHICS = (
     "do not mean a place is a new site."
 )
 HOME_CTA_SCAN = "Open Scan"
-HOME_CTA_SWARM = "Swarm (stub)"
+HOME_CTA_SWARM = "Open Swarm"
 HOME_CTA_REVIEW = "Review (stub)"
 HOME_CTA_EXPLORE = "Open Explore"
 SWARM_HEADING = "Swarm monitor"
-SWARM_CAPTION = "Slice B — not shipped in this release."
-SWARM_BODY = (
-    "Run the agent swarm from the CLI on a scanned tile’s DEM, then open Investigate "
-    "for specialist notes:\n\n"
-    "`uv run terra-scout agents run --dem path/to/tile.tif "
-    "--output-dir output/coverage/tiles/<tile_id>`\n\n"
-    "A live localhost monitor lands in Slice B. There is no cloud worker fleet."
+SWARM_CAPTION = (
+    "Start or attach the local six-agent swarm on one scanned study. "
+    "Status polls disk — no cloud workers."
 )
+SWARM_BODY = (
+    "Pick a Coverage tile (or DATA PATH study) with a DEM, then **Start** to launch "
+    "`terra-scout agents run` as a local subprocess, or **Attach** to read an existing "
+    "run. Per-agent rows come from `swarm_run.json` while running and from "
+    "`agent_traces.json` when the run finishes writing traces. There is no cloud "
+    "worker fleet. Software never auto-sets `expert_reviewed`."
+)
+SWARM_ETHICS = (
+    "Anomaly detection is not archaeological confirmation. Novelty stays "
+    "not_demonstrated until literature is retrieved."
+)
+SWARM_STOP_HELP = (
+    "Stop sends SIGTERM (then kill if needed) to the local agents process. "
+    "It does not invent partial agent_traces; products already on disk remain. "
+    "Traces appear only when a run finishes writing them."
+)
+SWARM_RESUME_HELP = (
+    "Resume means Start again on the same study — a full re-run of agents, "
+    "not a silent auto-restart."
+)
+SWARM_EMPTY = (
+    "No runnable studies yet. Scan a Coverage tile "
+    "(or set DATA PATH to a study with a DEM)."
+)
+SWARM_NO_DEM = (
+    "Selected study has no resolvable DEM (run_manifest dem_path or *.tif)."
+)
+SWARM_POLL_SECONDS = 2
 REVIEW_HEADING = "Flagged review queue"
 REVIEW_CAPTION = "Slice C — not shipped in this release."
 REVIEW_BODY = (

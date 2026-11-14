@@ -10,9 +10,10 @@ def test_home_copy_ethics_and_ctas() -> None:
     assert "new site" in dashboard_copy.HOME_ETHICS.lower()
     assert dashboard_copy.HOME_CTA_SCAN
     assert dashboard_copy.HOME_CTA_SWARM
+    assert "stub" not in dashboard_copy.HOME_CTA_SWARM.lower()
     assert dashboard_copy.HOME_CTA_REVIEW
     assert dashboard_copy.HOME_CTA_EXPLORE
-    assert "slice b" in dashboard_copy.SWARM_BODY.lower()
+    assert "local" in dashboard_copy.SWARM_BODY.lower()
     assert "slice c" in dashboard_copy.REVIEW_BODY.lower()
     assert dashboard_copy.COVERAGE_HEADING.startswith("Scan")
 
