@@ -2,9 +2,11 @@
 
 Evidence-driven research software for finding *potential* anthropogenic landscape features in public LiDAR and digital elevation models.
 
-Anomaly detection is **not** archaeological confirmation. High `anomaly_score` values are residual/shape statistics, not calibrated probabilities that a feature is archaeological. The localhost dashboard opens on **Home** (operator loop), then **Scan** (CONUS coverage %), **Swarm** / **Review** (honest stubs until later slices), **Explore** (terrain workbench), plus **Briefing** and **Investigate** for power users. Novelty stays `not_demonstrated` until literature is actually retrieved. A human (and, where required, an authority) confirms. Software does not. Scope now is North America (USGS 3DEP); world-scale coverage is an aspiration, not this release.
+Anomaly detection is **not** archaeological confirmation. High `anomaly_score` values are residual/shape statistics, not calibrated probabilities that a feature is archaeological. The localhost dashboard opens on **Home** (operator loop), then **Scan** (CONUS coverage %), **Swarm** (local agent monitor), **Review** (honest stub until Slice C), **Explore** (terrain workbench), plus **Briefing** and **Investigate** for power users. Novelty stays `not_demonstrated` until literature is actually retrieved. A human (and, where required, an authority) confirms. Software does not. Scope now is North America (USGS 3DEP); world-scale coverage is an aspiration, not this release.
 
 **Scan** tracks a sparse index over a fixed CONUS grid: queue tiles (demo region or custom bbox), download size-capped 3DEP subsets, analyze into per-tile study folders, and open results in Explore. Completeness is `(scanned + skipped) / total CONUS cells`. Unscanned cells are virtual until enqueued.
+
+**Swarm** (localhost only) starts or attaches `terra-scout agents run` on one scanned Coverage tile or DATA PATH study. The panel polls `swarm_run.json` / `agent_traces.json` (~2s while running); Stop kills the local process; Resume is an explicit re-Start. There is no cloud worker fleet. Software never auto-sets `expert_reviewed`.
 
 ## Quick start
 
