@@ -21,6 +21,10 @@ def test_analyze_writes_layers_geojson_preview_and_map(
     assert (output_dir / "layers" / "hillshade.tif").exists()
     assert (output_dir / "layers" / "slope_degrees.tif").exists()
     assert (output_dir / "layers" / "local_relief.tif").exists()
+    assert (output_dir / "layers" / "curvature.tif").exists()
+    assert (output_dir / "layers" / "tpi.tif").exists()
+    assert (output_dir / "layers" / "sky_view_factor.tif").exists()
+    assert (output_dir / "layers" / "ruggedness.tif").exists()
     assert (output_dir / "candidates.geojson").exists()
     assert (output_dir / "preview_hillshade.png").exists()
     assert (output_dir / "map.html").exists()
@@ -33,3 +37,4 @@ def test_analyze_writes_layers_geojson_preview_and_map(
     geojson_text = (output_dir / "candidates.geojson").read_text(encoding="utf-8")
     assert "mound_like" in geojson_text
     assert "not a calibrated archaeological probability" in geojson_text
+    assert '"novelty_status": "synthetic_na"' in geojson_text

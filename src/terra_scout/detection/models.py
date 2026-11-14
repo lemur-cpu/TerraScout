@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Any, Literal, Self
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from terra_scout.provenance import ObservationKind, ProvenanceRecord
 
@@ -33,6 +33,20 @@ ANOMALY_SCORE_DEFINITION = (
     "not a calibrated archaeological probability."
 )
 
+NoveltyStatus = Literal["not_demonstrated", "synthetic_na"]
+
+NOVELTY_NOTE_NOT_DEMONSTRATED = (
+    "Literature was not retrieved. Novelty is not demonstrated. "
+    "A missing record is not proof the place is unknown."
+)
+NOVELTY_NOTE_SYNTHETIC = "Synthetic fixture. Novelty does not apply."
+
+
+def novelty_for(observation_kind: ObservationKind) -> tuple[NoveltyStatus, str]:
+    if observation_kind == "synthetic":
+        return "synthetic_na", NOVELTY_NOTE_SYNTHETIC
+    return "not_demonstrated", NOVELTY_NOTE_NOT_DEMONSTRATED
+
 
 class CandidateFeature(BaseModel):
     candidate_id: str
@@ -52,10 +66,19 @@ class CandidateFeature(BaseModel):
     data_quality: dict[str, Any] = Field(default_factory=dict)
     review_status: ReviewStatus = "unreviewed"
     observation_kind: ObservationKind
+    novelty_status: NoveltyStatus = "not_demonstrated"
+    novelty_note: str = NOVELTY_NOTE_NOT_DEMONSTRATED
     provenance: ProvenanceRecord
     alternative_explanations: list[str] = Field(default_factory=list)
     supporting_evidence: list[str] = Field(default_factory=list)
     contradicting_evidence: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def bind_novelty_to_observation_kind(self) -> Self:
+        status, note = novelty_for(self.observation_kind)
+        self.novelty_status = status
+        self.novelty_note = note
+        return self
 
 
 class DetectionResult(BaseModel):

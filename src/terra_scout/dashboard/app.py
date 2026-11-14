@@ -1,62 +1,154 @@
 from __future__ import annotations
 
-from pathlib import Path
+import importlib
 
 import streamlit as st
 
-from terra_scout.dashboard.loader import load_analysis_directory
-
-st.set_page_config(page_title="TerraScout", layout="wide")
-st.title("TerraScout research dashboard")
-st.warning(
-    "Local-only. Do not publish unpublished candidate coordinates. "
-    "Anomaly detection is not archaeological confirmation."
+from terra_scout.dashboard import copy as _dashboard_copy
+from terra_scout.dashboard import (
+    pages_briefing,
+    pages_coverage,
+    pages_explore,
+    pages_home,
+    pages_investigate,
+    pages_review,
+    pages_swarm,
 )
+from terra_scout.dashboard import shell as _dashboard_shell
+from terra_scout.dashboard.theme import CONSOLE_CSS
 
-analysis_dir = Path(
-    st.sidebar.text_input("Analysis directory", value="output/analyze")
+# Streamlit reruns this file but keeps sys.modules. Reload helpers so a hot
+# save cannot ImportError on a name that exists on disk.
+_dashboard_copy = importlib.reload(_dashboard_copy)
+_dashboard_shell = importlib.reload(_dashboard_shell)
+pages_briefing = importlib.reload(pages_briefing)
+pages_coverage = importlib.reload(pages_coverage)
+pages_explore = importlib.reload(pages_explore)
+pages_home = importlib.reload(pages_home)
+pages_investigate = importlib.reload(pages_investigate)
+pages_review = importlib.reload(pages_review)
+pages_swarm = importlib.reload(pages_swarm)
+
+PAGE_TITLE = _dashboard_copy.PAGE_TITLE
+ABOUT = _dashboard_copy.ABOUT
+
+st.set_page_config(
+    page_title=PAGE_TITLE,
+    layout="wide",
+    menu_items={
+        "Get help": None,
+        "Report a bug": None,
+        "About": ABOUT,
+    },
 )
-state = load_analysis_directory(analysis_dir)
+st.markdown(f"<style>{CONSOLE_CSS}</style>", unsafe_allow_html=True)
 
-if state.status == "empty":
-    st.info(state.message)
-elif state.status == "error":
-    st.error(state.message)
-else:
-    st.success(state.message)
-    columns = st.columns(2)
-    if state.hillshade_png:
-        columns[0].image(str(state.hillshade_png), caption="Hillshade preview")
-    if state.geojson_path:
-        columns[1].json(state.geojson_path.read_text(encoding="utf-8")[:4000])
-    if state.report_path:
-        st.subheader("Evidence report")
-        st.text(state.report_path.read_text(encoding="utf-8")[:8000])
-    registry_path = analysis_dir / "registry.sqlite3"
-    if registry_path.exists():
-        from terra_scout.registry.store import CandidateStore
 
-        store = CandidateStore(registry_path)
-        st.subheader("Human review")
-        statuses: tuple[str, ...] = (
-            "unreviewed",
-            "likely_natural",
-            "likely_modern",
-            "needs_research",
-            "potential_anthropogenic_feature",
-            "expert_reviewed",
-            "rejected",
-        )
-        for candidate in store.list_candidates():
-            choice = st.selectbox(
-                f"{candidate.feature_category} {candidate.candidate_id[:8]} "
-                f"(score {candidate.anomaly_score:.2f})",
-                options=list(statuses),
-                index=list(statuses).index(candidate.review_status),
-                key=f"review-{candidate.candidate_id}",
-            )
-            if choice != candidate.review_status:
-                store.set_review_status(candidate.candidate_id, choice)  # type: ignore[arg-type]
-    else:
-        st.caption("No local registry.sqlite3 in this directory yet.")
-    st.caption(f"Candidates: {state.candidate_count}. Review stays on this machine.")
+def _switch_to(page) -> None:
+    st.switch_page(page)
+
+
+def _run_home() -> None:
+    copy_mod = importlib.reload(_dashboard_copy)
+    _dashboard_shell.render_masthead(copy_mod)
+    pages_home.render_home(
+        root=pages_coverage.COVERAGE_DEFAULT_ROOT,
+        copy_mod=copy_mod,
+        switch_scan=lambda: _switch_to(scan_page),
+        switch_swarm=lambda: _switch_to(swarm_page),
+        switch_review=lambda: _switch_to(review_page),
+        switch_explore=lambda: _switch_to(explore_page),
+    )
+
+
+def _run_coverage() -> None:
+    copy_mod = importlib.reload(_dashboard_copy)
+    _dashboard_shell.render_masthead(copy_mod)
+    _dashboard_shell.render_sidebar(copy_mod)
+    pages_coverage.render_coverage(
+        root=pages_coverage.COVERAGE_DEFAULT_ROOT,
+        switch_explore=lambda: _switch_to(explore_page),
+        copy_mod=copy_mod,
+    )
+
+
+def _run_swarm() -> None:
+    copy_mod = importlib.reload(_dashboard_copy)
+    _dashboard_shell.render_masthead(copy_mod)
+    analysis_dir, _dem_override = _dashboard_shell.render_sidebar(copy_mod)
+    pages_swarm.render_swarm(
+        copy_mod,
+        coverage_root=pages_coverage.COVERAGE_DEFAULT_ROOT,
+        data_path=analysis_dir,
+        switch_scan=lambda: _switch_to(scan_page),
+        switch_investigate=lambda: _switch_to(investigate_page),
+        switch_briefing=lambda: _switch_to(briefing_page),
+    )
+
+
+def _run_review() -> None:
+    copy_mod = importlib.reload(_dashboard_copy)
+    _dashboard_shell.render_masthead(copy_mod)
+    _dashboard_shell.render_sidebar(copy_mod)
+    pages_review.render_review(
+        copy_mod,
+        switch_investigate=lambda: _switch_to(investigate_page),
+    )
+
+
+def _run_briefing() -> None:
+    copy_mod = importlib.reload(_dashboard_copy)
+    _dashboard_shell.render_masthead(copy_mod)
+    analysis_dir, dem_override = _dashboard_shell.render_sidebar(copy_mod)
+    del dem_override
+    state = _dashboard_shell.load_for_briefing(analysis_dir)
+    pages_briefing.render_briefing(
+        state,
+        copy_mod,
+        switch_investigate=lambda: _switch_to(investigate_page),
+        switch_explore=lambda: _switch_to(explore_page),
+    )
+
+
+def _run_explore() -> None:
+    copy_mod = importlib.reload(_dashboard_copy)
+    _dashboard_shell.render_masthead(copy_mod)
+    analysis_dir, dem_override = _dashboard_shell.render_sidebar(copy_mod)
+    state = _dashboard_shell.load_or_stop(analysis_dir)
+    pages_explore.render_explore(
+        state,
+        copy_mod,
+        dem_override=dem_override,
+        switch_investigate=lambda: _switch_to(investigate_page),
+    )
+
+
+def _run_investigate() -> None:
+    copy_mod = importlib.reload(_dashboard_copy)
+    _dashboard_shell.render_masthead(copy_mod)
+    analysis_dir, dem_override = _dashboard_shell.render_sidebar(copy_mod)
+    del dem_override
+    state = _dashboard_shell.load_or_stop(analysis_dir)
+    pages_investigate.render_investigate(state, copy_mod)
+
+
+home_page = st.Page(_run_home, title="Home", default=True)
+scan_page = st.Page(_run_coverage, title="Scan")
+swarm_page = st.Page(_run_swarm, title="Swarm")
+review_page = st.Page(_run_review, title="Review")
+explore_page = st.Page(_run_explore, title="Explore")
+briefing_page = st.Page(_run_briefing, title="Briefing")
+investigate_page = st.Page(_run_investigate, title="Investigate")
+
+navigation = st.navigation(
+    [
+        home_page,
+        scan_page,
+        swarm_page,
+        review_page,
+        explore_page,
+        briefing_page,
+        investigate_page,
+    ],
+)
+navigation.run()
