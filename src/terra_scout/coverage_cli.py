@@ -8,12 +8,16 @@ from rich.table import Table
 
 from terra_scout.config import get_settings
 from terra_scout.coverage.index import CoverageIndex
-from terra_scout.coverage.process import DEFAULT_STALE_RUNNING_SECONDS, process_batch, process_next
+from terra_scout.coverage.process import process_next
 
 DEFAULT_COVERAGE_ROOT = Path("output/coverage")
 
 coverage_app = typer.Typer(help="Progressive CONUS coverage board and tile processor.")
 console = Console()
+
+
+def _index_for_root(root: Path) -> CoverageIndex:
+    return CoverageIndex(root / "coverage.sqlite3")
 
 
 def _parse_bbox(bbox: str) -> tuple[float, float, float, float]:
@@ -32,7 +36,7 @@ def coverage_callback(
     root: Path = typer.Option(
         DEFAULT_COVERAGE_ROOT,
         "--root",
-        help="Coverage workspace root (SQLite index, cache, studies).",
+        help="Coverage workspace root (SQLite index, cache, tiles).",
         file_okay=False,
     ),
 ) -> None:
@@ -44,7 +48,9 @@ def coverage_callback(
 def coverage_init(ctx: typer.Context) -> None:
     """Create the coverage SQLite index under --root."""
     root: Path = ctx.obj["root"]
-    path = CoverageIndex(root).init()
+    root.mkdir(parents=True, exist_ok=True)
+    (root / "tiles").mkdir(parents=True, exist_ok=True)
+    path = _index_for_root(root).ensure_open()
     console.print(f"Initialized coverage index at {path}")
 
 
@@ -55,8 +61,8 @@ def coverage_seed_demo(
 ) -> None:
     """Enqueue demo bbox tiles (README public 3DEP box)."""
     root: Path = ctx.obj["root"]
-    index = CoverageIndex(root)
-    index.init()
+    index = _index_for_root(root)
+    index.ensure_open()
     added = index.enqueue_demo_seed(allow_scanned=allow_scanned)
     console.print(f"Queued {added} demo tile(s) under {root}")
 
@@ -70,8 +76,8 @@ def coverage_enqueue(
     """Enqueue every grid tile intersecting a bbox."""
     root: Path = ctx.obj["root"]
     west, south, east, north = _parse_bbox(bbox)
-    index = CoverageIndex(root)
-    index.init()
+    index = _index_for_root(root)
+    index.ensure_open()
     added = index.enqueue_bbox(west, south, east, north, allow_scanned=allow_scanned)
     console.print(f"Queued {added} tile(s) for bbox {bbox}")
 
@@ -93,49 +99,38 @@ def coverage_process(
         None,
         help="Per-tile download cap (default TERRASCOUT_MAX_DOWNLOAD_MEGABYTES).",
     ),
-    stale_seconds: float = typer.Option(
-        DEFAULT_STALE_RUNNING_SECONDS,
-        help="Reset running tiles older than this many seconds.",
-    ),
 ) -> None:
     """Download, analyze, and mark the next queued tile(s)."""
     root: Path = ctx.obj["root"]
     cap = max_megabytes if max_megabytes is not None else get_settings().max_download_megabytes
-    if count > 0:
-        outcomes = process_batch(
-            root,
-            count=count,
-            max_megabytes=cap,
-            stale_seconds=stale_seconds,
-        )
-        if not outcomes:
-            console.print("No queued tiles.")
-            raise typer.Exit(code=0)
-        for outcome in outcomes:
-            console.print(
-                f"{outcome.tile_id}: {outcome.status}"
-                + (f" -> {outcome.study_dir}" if outcome.study_dir else "")
-                + (f" ({outcome.message})" if outcome.message else "")
-            )
-        return
-    if not next_tile:
+    index = _index_for_root(root)
+    index.ensure_open()
+    batch_n = count if count > 0 else (1 if next_tile else 0)
+    if batch_n <= 0:
         raise typer.BadParameter("Pass --next or --count N to process tiles.")
-    outcome = process_next(root, max_megabytes=cap, stale_seconds=stale_seconds)
-    if outcome is None:
+    outcomes = process_next(
+        index,
+        n=batch_n,
+        cache_dir=root / "cache",
+        max_megabytes=cap,
+        tiles_root=root,
+    )
+    if not outcomes:
         console.print("No queued tiles.")
         raise typer.Exit(code=0)
-    console.print(
-        f"{outcome.tile_id}: {outcome.status}"
-        + (f" -> {outcome.study_dir}" if outcome.study_dir else "")
-        + (f" ({outcome.message})" if outcome.message else "")
-    )
+    for outcome in outcomes:
+        console.print(
+            f"{outcome.tile_id}: {outcome.status}"
+            + (f" -> {outcome.study_dir}" if outcome.study_dir else "")
+            + (f" ({outcome.message})" if outcome.message else "")
+        )
 
 
 @coverage_app.command("status")
 def coverage_status(ctx: typer.Context) -> None:
     """Show virtual unscanned counts and recent tile rows."""
     root: Path = ctx.obj["root"]
-    index = CoverageIndex(root)
+    index = _index_for_root(root)
     if not index.db_path.exists():
         console.print(f"No index at {index.db_path}; run coverage init first.")
         raise typer.Exit(code=1)

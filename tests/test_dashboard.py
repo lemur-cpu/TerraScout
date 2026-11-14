@@ -210,6 +210,7 @@ def test_dashboard_app_wires_three_modes_and_reloads() -> None:
     reload_at = text.find("importlib.reload")
     assert reload_at != -1
     assert "st.navigation" in text
+    assert 'title="Coverage"' in text
     assert 'title="Briefing"' in text
     assert 'title="Explore"' in text
     assert 'title="Investigate"' in text

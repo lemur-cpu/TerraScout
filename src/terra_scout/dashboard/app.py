@@ -49,6 +49,7 @@ def _run_coverage() -> None:
     pages_coverage.render_coverage(
         root=pages_coverage.COVERAGE_DEFAULT_ROOT,
         switch_explore=lambda: _switch_to(explore_page),
+        copy_mod=copy_mod,
     )
 
 

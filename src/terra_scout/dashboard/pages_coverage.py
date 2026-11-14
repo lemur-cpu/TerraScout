@@ -6,14 +6,10 @@ import streamlit as st
 
 from terra_scout.config import get_settings
 from terra_scout.coverage.index import CoverageIndex
-from terra_scout.coverage.process import (
-    DEFAULT_STALE_RUNNING_SECONDS,
-    process_batch,
-)
+from terra_scout.coverage.process import process_next
 from terra_scout.dashboard.shell import queue_data_path
 
 COVERAGE_DEFAULT_ROOT = Path("output/coverage")
-COVERAGE_STALE_RUNNING_SECONDS = DEFAULT_STALE_RUNNING_SECONDS
 COVERAGE_TABLE_LIMIT = 200
 
 
@@ -21,15 +17,15 @@ def render_coverage(
     *,
     root: Path,
     switch_explore,
+    copy_mod,
 ) -> None:
-    st.subheader("CONUS coverage board")
-    st.caption(
-        "Progressive USGS 3DEP scanning over a fixed CONUS grid. "
-        "Anomaly detection is not archaeological confirmation."
-    )
+    st.subheader(copy_mod.COVERAGE_HEADING)
+    st.caption(copy_mod.COVERAGE_CAPTION)
+    st.markdown(copy_mod.COVERAGE_NOTE)
 
-    index = CoverageIndex(root)
-    index.init()
+    db_path = root / "coverage.sqlite3"
+    index = CoverageIndex(db_path)
+    index.ensure_open()
     counts = index.status_counts()
 
     c1, c2, c3, c4, c5, c6 = st.columns(6)
@@ -55,11 +51,12 @@ def render_coverage(
         st.rerun()
 
     if st.button("Process batch"):
-        outcomes = process_batch(
-            root,
-            count=int(batch_n),
+        outcomes = process_next(
+            index,
+            n=int(batch_n),
+            cache_dir=root / "cache",
             max_megabytes=float(max_mb),
-            stale_seconds=COVERAGE_STALE_RUNNING_SECONDS,
+            tiles_root=root,
         )
         if not outcomes:
             st.info("No queued tiles.")

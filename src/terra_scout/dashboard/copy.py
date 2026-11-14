@@ -51,3 +51,13 @@ ACQUIRE_NOTE = (
     "Results are candidate sites for review — not confirmed archaeology."
 )
 ACQUIRE_DEMO_HELP = "Uses the documented public demo box near St. Louis / Cahokia region."
+
+COVERAGE_HEADING = "CONUS coverage board"
+COVERAGE_CAPTION = (
+    "Progressive USGS 3DEP scanning over a fixed CONUS grid. "
+    "Queue tiles, process with a download cap, and open studies in Explore."
+)
+COVERAGE_NOTE = (
+    "Anomaly detection is not archaeological confirmation. "
+    "Unscanned cells are virtual until enqueued in the sparse index."
+)

@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import sqlite3
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from pathlib import Path
 
 from terra_scout.coverage.grid import (
     demo_seed_tiles,
-    tile_bbox_for_id,
+    parse_tile_id,
+    tile_bbox,
+    tile_id,
     tiles_intersecting,
     total_cell_count,
 )
@@ -15,9 +17,15 @@ from terra_scout.coverage.grid import (
 STATUSES = frozenset({"queued", "running", "scanned", "skipped", "failed"})
 
 
+class CoverageIndexError(RuntimeError):
+    """Coverage SQLite index could not be opened or updated."""
+
+
 @dataclass(frozen=True)
-class TileRecord:
+class TileRow:
     tile_id: str
+    ix: int
+    iy: int
     west: float
     south: float
     east: float
@@ -33,17 +41,18 @@ def _utc_now() -> str:
 
 
 class CoverageIndex:
-    def __init__(self, root: Path) -> None:
-        self.root = Path(root)
-        self.db_path = self.root / "coverage.sqlite3"
+    def __init__(self, path_to_sqlite_file: Path | str) -> None:
+        self.db_path = Path(path_to_sqlite_file)
 
-    def init(self) -> Path:
-        self.root.mkdir(parents=True, exist_ok=True)
+    def ensure_open(self) -> Path:
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
         with self._connect() as conn:
             conn.executescript(
                 """
                 CREATE TABLE IF NOT EXISTS tiles (
                     tile_id TEXT PRIMARY KEY,
+                    ix INTEGER NOT NULL,
+                    iy INTEGER NOT NULL,
                     west REAL NOT NULL,
                     south REAL NOT NULL,
                     east REAL NOT NULL,
@@ -59,14 +68,18 @@ class CoverageIndex:
         return self.db_path
 
     def _connect(self) -> sqlite3.Connection:
-        self.root.mkdir(parents=True, exist_ok=True)
-        conn = sqlite3.connect(self.db_path)
+        try:
+            conn = sqlite3.connect(self.db_path)
+        except sqlite3.Error as error:
+            raise CoverageIndexError(f"cannot open coverage index: {self.db_path}") from error
         conn.row_factory = sqlite3.Row
         return conn
 
-    def _row_to_record(self, row: sqlite3.Row) -> TileRecord:
-        return TileRecord(
+    def _row_to_tile(self, row: sqlite3.Row) -> TileRow:
+        return TileRow(
             tile_id=row["tile_id"],
+            ix=int(row["ix"]),
+            iy=int(row["iy"]),
             west=row["west"],
             south=row["south"],
             east=row["east"],
@@ -77,25 +90,28 @@ class CoverageIndex:
             message=row["message"],
         )
 
+    def persisted_count(self) -> int:
+        with self._connect() as conn:
+            row = conn.execute("SELECT COUNT(*) AS n FROM tiles").fetchone()
+        return int(row["n"]) if row is not None else 0
+
     def status_counts(self) -> dict[str, int]:
         counts: dict[str, int] = {name: 0 for name in STATUSES}
         with self._connect() as conn:
             rows = conn.execute(
                 "SELECT status, COUNT(*) AS n FROM tiles GROUP BY status"
             ).fetchall()
-            total_recorded = 0
             for row in rows:
                 status = str(row["status"])
                 n = int(row["n"])
-                total_recorded += n
                 if status in counts:
                     counts[status] = n
                 else:
                     counts[status] = n
-        counts["unscanned"] = max(0, total_cell_count() - total_recorded)
+        counts["unscanned"] = max(0, total_cell_count() - self.persisted_count())
         return counts
 
-    def list_tiles(self, *, limit: int = 500) -> list[TileRecord]:
+    def list_tiles(self, *, limit: int = 500) -> list[TileRow]:
         with self._connect() as conn:
             rows = conn.execute(
                 """
@@ -105,25 +121,26 @@ class CoverageIndex:
                 """,
                 (limit,),
             ).fetchall()
-        return [self._row_to_record(row) for row in rows]
+        return [self._row_to_tile(row) for row in rows]
 
-    def enqueue(self, tile_id: str, *, allow_scanned: bool = False) -> bool:
-        west, south, east, north = tile_bbox_for_id(tile_id)
+    def enqueue(self, ix: int, iy: int, *, allow_scanned: bool = False) -> bool:
+        tid = tile_id(ix, iy)
+        west, south, east, north = tile_bbox(ix, iy)
         now = _utc_now()
         with self._connect() as conn:
             row = conn.execute(
                 "SELECT status FROM tiles WHERE tile_id = ?",
-                (tile_id,),
+                (tid,),
             ).fetchone()
             if row is None:
                 conn.execute(
                     """
                     INSERT INTO tiles (
-                        tile_id, west, south, east, north,
+                        tile_id, ix, iy, west, south, east, north,
                         status, updated_at, study_dir, message
-                    ) VALUES (?, ?, ?, ?, ?, 'queued', ?, NULL, NULL)
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'queued', ?, NULL, NULL)
                     """,
-                    (tile_id, west, south, east, north, now),
+                    (tid, ix, iy, west, south, east, north, now),
                 )
                 conn.commit()
                 return True
@@ -138,15 +155,16 @@ class CoverageIndex:
                 SET status = 'queued', updated_at = ?, message = NULL
                 WHERE tile_id = ?
                 """,
-                (now, tile_id),
+                (now, tid),
             )
             conn.commit()
             return True
 
     def enqueue_demo_seed(self, *, allow_scanned: bool = False) -> int:
         added = 0
-        for tile_id in demo_seed_tiles():
-            if self.enqueue(tile_id, allow_scanned=allow_scanned):
+        for tid in demo_seed_tiles():
+            ix, iy = parse_tile_id(tid)
+            if self.enqueue(ix, iy, allow_scanned=allow_scanned):
                 added += 1
         return added
 
@@ -160,14 +178,47 @@ class CoverageIndex:
         allow_scanned: bool = False,
     ) -> int:
         added = 0
-        for tile_id in tiles_intersecting(west, south, east, north):
-            if self.enqueue(tile_id, allow_scanned=allow_scanned):
+        for tid in tiles_intersecting(west, south, east, north):
+            ix, iy = parse_tile_id(tid)
+            if self.enqueue(ix, iy, allow_scanned=allow_scanned):
                 added += 1
         return added
 
+    def skip(self, ix: int, iy: int, *, message: str | None = None) -> bool:
+        tid = tile_id(ix, iy)
+        west, south, east, north = tile_bbox(ix, iy)
+        now = _utc_now()
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT status FROM tiles WHERE tile_id = ?",
+                (tid,),
+            ).fetchone()
+            if row is None:
+                conn.execute(
+                    """
+                    INSERT INTO tiles (
+                        tile_id, ix, iy, west, south, east, north,
+                        status, updated_at, study_dir, message
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'skipped', ?, NULL, ?)
+                    """,
+                    (tid, ix, iy, west, south, east, north, now, message),
+                )
+                conn.commit()
+                return True
+            conn.execute(
+                """
+                UPDATE tiles
+                SET status = 'skipped', updated_at = ?, message = ?
+                WHERE tile_id = ?
+                """,
+                (now, message, tid),
+            )
+            conn.commit()
+            return True
+
     def mark_status(
         self,
-        tile_id: str,
+        tile_id_str: str,
         status: str,
         *,
         study_dir: Path | str | None = None,
@@ -184,55 +235,57 @@ class CoverageIndex:
                 SET status = ?, updated_at = ?, study_dir = ?, message = ?
                 WHERE tile_id = ?
                 """,
-                (status, now, study, message, tile_id),
+                (status, now, study, message, tile_id_str),
             )
             conn.commit()
 
-    def reset_stale_running(self, stale_seconds: float) -> int:
-        if stale_seconds <= 0:
-            return 0
-        cutoff = (datetime.now(UTC) - timedelta(seconds=stale_seconds)).replace(
-            microsecond=0
-        ).isoformat()
+    def reset_stale_running(self) -> int:
         now = _utc_now()
         with self._connect() as conn:
             cursor = conn.execute(
                 """
                 UPDATE tiles
                 SET status = 'queued', updated_at = ?, message = 'stale running reset'
-                WHERE status = 'running' AND updated_at < ?
+                WHERE status = 'running'
                 """,
-                (now, cutoff),
+                (now,),
             )
             conn.commit()
             return int(cursor.rowcount)
 
-    def dequeue_queued(self) -> TileRecord | None:
+    def dequeue_queued(self, n: int = 1) -> list[TileRow]:
+        if n <= 0:
+            return []
         now = _utc_now()
         with self._connect() as conn:
-            row = conn.execute(
+            rows = conn.execute(
                 """
                 SELECT * FROM tiles
                 WHERE status = 'queued'
                 ORDER BY updated_at, tile_id
-                LIMIT 1
-                """
-            ).fetchone()
-            if row is None:
-                return None
-            conn.execute(
-                """
-                UPDATE tiles
-                SET status = 'running', updated_at = ?
-                WHERE tile_id = ?
+                LIMIT ?
                 """,
-                (now, row["tile_id"]),
-            )
+                (n,),
+            ).fetchall()
+            if not rows:
+                return []
+            for row in rows:
+                conn.execute(
+                    """
+                    UPDATE tiles
+                    SET status = 'running', updated_at = ?
+                    WHERE tile_id = ?
+                    """,
+                    (now, row["tile_id"]),
+                )
             conn.commit()
+            ids = [row["tile_id"] for row in rows]
             refreshed = conn.execute(
-                "SELECT * FROM tiles WHERE tile_id = ?",
-                (row["tile_id"],),
-            ).fetchone()
-        if refreshed is None:
-            return None
-        return self._row_to_record(refreshed)
+                f"""
+                SELECT * FROM tiles
+                WHERE tile_id IN ({",".join("?" * len(ids))})
+                ORDER BY updated_at, tile_id
+                """,
+                ids,
+            ).fetchall()
+        return [self._row_to_tile(row) for row in refreshed]
