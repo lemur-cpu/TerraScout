@@ -41,8 +41,22 @@ def render_sidebar(copy_mod) -> tuple[Path, str | None]:
     return analysis_dir, override
 
 
-def load_or_stop(analysis_dir: Path) -> DashboardState:
+def load_state(analysis_dir: Path) -> DashboardState:
+    """Load dashboard state without stopping (Briefing may show acquire UI)."""
+    return load_analysis_directory(analysis_dir)
+
+
+def load_or_stop(analysis_dir: Path, *, allow_empty: bool = False) -> DashboardState:
     state = load_analysis_directory(analysis_dir)
+    if allow_empty and state.status == "empty":
+        return state
+    if allow_empty and state.status == "error" and "does not exist" in state.message:
+        # Briefing can acquire into a path that does not exist yet.
+        return DashboardState(
+            status="empty",
+            message=state.message,
+            run_root=analysis_dir,
+        )
     if state.status == "empty":
         st.info(state.message)
         st.stop()

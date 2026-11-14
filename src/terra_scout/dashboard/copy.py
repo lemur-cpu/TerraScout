@@ -40,3 +40,10 @@ ABOUT = (
     "Anomaly detection is not archaeological confirmation. "
     "Novelty is not demonstrated until literature is actually retrieved."
 )
+
+ACQUIRE_HEADING = "Acquire study area"
+ACQUIRE_CAPTION = (
+    "Enter a WGS84 bounding box or load the public demo box. TerraScout downloads a "
+    "size-capped USGS 3DEP DEM, runs analyze, and points the explorer at that output."
+)
+ACQUIRE_SUCCESS = "Acquire finished. Open Explore to walk the terrain layers."

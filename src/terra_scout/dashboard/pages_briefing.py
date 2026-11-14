@@ -1,14 +1,35 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import streamlit as st
 
+from terra_scout.config import get_settings
+from terra_scout.dashboard.acquire import DEMO_BBOX, AcquireError, acquire_and_analyze
 from terra_scout.dashboard.loader import DashboardState
 from terra_scout.dashboard.traces import load_agent_traces
 
 
-def render_briefing(state: DashboardState, copy_mod, *, switch_investigate) -> None:
+def render_briefing(
+    state: DashboardState,
+    copy_mod,
+    *,
+    switch_investigate,
+    switch_explore=None,
+) -> None:
     st.subheader(copy_mod.BRIEFING_HEADING)
     st.caption(copy_mod.BRIEFING_CAPTION)
+
+    analysis_dir = state.run_root or Path(st.session_state.get("ts_data_path", "output/analyze"))
+    _render_acquire_panel(copy_mod, analysis_dir=Path(analysis_dir), switch_explore=switch_explore)
+
+    if state.status == "empty":
+        st.info(state.message)
+        return
+    if state.status == "error":
+        st.error(state.message)
+        return
+
     st.caption(
         f"OBS.KIND  {state.observation_kind.upper()}  ·  LAYOUT  {state.layout_kind.upper()}"
     )
@@ -38,6 +59,55 @@ def render_briefing(state: DashboardState, copy_mod, *, switch_investigate) -> N
             switch_investigate()
     else:
         st.caption("No unreviewed candidate sites to open.")
+
+
+def _render_acquire_panel(copy_mod, *, analysis_dir: Path, switch_explore) -> None:
+    st.markdown(f"**{copy_mod.ACQUIRE_HEADING}**")
+    st.caption(copy_mod.ACQUIRE_CAPTION)
+    if st.button("Load public demo bbox"):
+        st.session_state["ts_acq_west"] = DEMO_BBOX[0]
+        st.session_state["ts_acq_south"] = DEMO_BBOX[1]
+        st.session_state["ts_acq_east"] = DEMO_BBOX[2]
+        st.session_state["ts_acq_north"] = DEMO_BBOX[3]
+    cols = st.columns(4)
+    west = cols[0].number_input(
+        "west", value=float(st.session_state.get("ts_acq_west", DEMO_BBOX[0])), key="ts_acq_west"
+    )
+    south = cols[1].number_input(
+        "south",
+        value=float(st.session_state.get("ts_acq_south", DEMO_BBOX[1])),
+        key="ts_acq_south",
+    )
+    east = cols[2].number_input(
+        "east", value=float(st.session_state.get("ts_acq_east", DEMO_BBOX[2])), key="ts_acq_east"
+    )
+    north = cols[3].number_input(
+        "north",
+        value=float(st.session_state.get("ts_acq_north", DEMO_BBOX[3])),
+        key="ts_acq_north",
+    )
+    settings = get_settings()
+    if st.button("Download 3DEP + analyze", type="primary"):
+        try:
+            result = acquire_and_analyze(
+                west=float(west),
+                south=float(south),
+                east=float(east),
+                north=float(north),
+                cache_dir=Path(settings.cache_dir),
+                output_dir=analysis_dir,
+                max_megabytes=float(settings.max_download_megabytes),
+            )
+        except (AcquireError, OSError, RuntimeError) as error:
+            st.error(str(error))
+            return
+        st.session_state.ts_data_path = str(result.output_dir)
+        st.success(
+            f"{copy_mod.ACQUIRE_SUCCESS} kind={result.observation_kind} "
+            f"candidates={result.candidate_count}"
+        )
+        if switch_explore is not None and st.button("Open Explore"):
+            switch_explore()
 
 
 def _render_swarm_summary(state: DashboardState, copy_mod) -> None:
