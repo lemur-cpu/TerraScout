@@ -66,6 +66,7 @@ def load_dem(path: Path | str) -> DigitalElevationModel:
     if not np.isfinite(elevation_meters).any():
         raise DemValidationError("DEM contains no finite elevation samples")
 
+    _refuse_non_meter_linear_units(raster_crs)
     cell_size_meters = _cell_size_meters(transform, raster_crs, elevation_meters.shape)
     observation_kind = _observation_kind(tags)
     provenance = ProvenanceRecord(
@@ -89,6 +90,25 @@ def load_dem(path: Path | str) -> DigitalElevationModel:
         provenance=provenance,
         cell_size_meters=cell_size_meters,
     )
+
+
+def _refuse_non_meter_linear_units(crs: CRS) -> None:
+    """Projected linear units must be meters so area_m2 and cell sizes stay honest."""
+    for axis in crs.axis_info:
+        unit = (axis.unit_name or "").lower()
+        if "degree" in unit or "radian" in unit:
+            continue
+        if "foot" in unit or unit in {"ft", "us-ft", "us survey foot"}:
+            raise DemValidationError(
+                f"CRS axis '{axis.name}' uses {axis.unit_name}; reproject to meters"
+            )
+        factor = axis.unit_conversion_factor
+        if factor is None:
+            continue
+        if abs(factor - 1.0) > 1e-3:
+            raise DemValidationError(
+                f"CRS axis '{axis.name}' uses {axis.unit_name}; reproject to meters"
+            )
 
 
 def _observation_kind(tags: dict[str, str]) -> ObservationKind:

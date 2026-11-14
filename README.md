@@ -2,7 +2,9 @@
 
 Evidence-driven research software for finding *potential* anthropogenic landscape features in public LiDAR and digital elevation models.
 
-Anomaly detection is **not** archaeological confirmation. High `anomaly_score` values are residual/shape statistics, not calibrated probabilities that a feature is archaeological. Human review is required before any discovery claim.
+Anomaly detection is **not** archaeological confirmation. High `anomaly_score` values are residual/shape statistics, not calibrated probabilities that a feature is archaeological. The localhost dashboard opens on **Coverage** (CONUS grid board), then **Briefing** (situation board), **Explore** (terrain workbench), and **Investigate** (one candidate evidence packet + specialists). Novelty stays `not_demonstrated` until literature is actually retrieved. A human (and, where required, an authority) confirms. Software does not. Scope now is North America (USGS 3DEP); world-scale coverage is an aspiration, not this release.
+
+**Coverage** tracks a sparse index over a fixed CONUS grid: queue tiles, download size-capped 3DEP subsets, analyze into per-tile study folders, and open results in Explore. Unscanned cells are virtual until enqueued.
 
 ## Quick start
 
@@ -29,10 +31,15 @@ Expected files in `output/demo/`:
 | `layers/hillshade.tif` | Multidirectional hillshade |
 | `layers/slope_degrees.tif` | Horn 1981 slope |
 | `layers/local_relief.tif` | Circular-mean local relief residual |
+| `layers/curvature.tif` | Plan curvature |
+| `layers/tpi.tif` | Topographic position |
+| `layers/sky_view_factor.tif` | Sky-view factor |
+| `layers/ruggedness.tif` | Terrain ruggedness |
 | `candidates.geojson` | Anomaly polygons with scores and disclaimers |
 | `preview_hillshade.png` | Quick-look image |
 | `map.html` | Local Folium map |
 | `report.txt` | Candidate list |
+| `registry.sqlite3` | Local review registry |
 
 On the synthetic 64×64 mound fixture used by tests, `analyze` writes a `mound_like` candidate whose score definition contains `not a calibrated archaeological probability`.
 
@@ -45,6 +52,11 @@ terra-scout datasets download --bbox minx,miny,maxx,maxy --max-megabytes 20 --ou
 terra-scout agents run --dem FILE --study-area FILE --output-dir DIR
 terra-scout dashboard --host 127.0.0.1 --port 8501
 terra-scout benchmark --config experiments/synthetic.yaml --output-dir output/benchmarks
+terra-scout coverage init --root output/coverage
+terra-scout coverage seed-demo --root output/coverage
+terra-scout coverage enqueue --bbox minx,miny,maxx,maxy --root output/coverage
+terra-scout coverage process --next --root output/coverage
+terra-scout coverage status --root output/coverage
 terra-scout version
 ```
 
@@ -62,7 +74,7 @@ This was run against USGS 3DEP ImageServer (not a mock):
 
 Those candidates are terrain anomalies on a well-documented public landscape. They are **not** new archaeological sites. Precise geometries were kept in a local `output/` tree and are gitignored.
 
-Reproduce:
+Reproduce from the CLI:
 
 ```bash
 uv run terra-scout datasets download \
@@ -72,6 +84,8 @@ uv run terra-scout datasets download \
 uv run terra-scout analyze --dem data/cache/usgs_3dep_m90p0700_38p6550_m90p0550_38p6650.tif \
   --output-dir output/demo
 ```
+
+Or from the dashboard **Briefing → Acquire study area**: load the demo bbox, keep the size cap (≤5 MB), set output to `output/study`, then **Download USGS 3DEP and analyze**. DATA PATH switches to that folder; **Explore** / **Investigate** walk the same candidates. Coverage is not universal; oversize downloads are refused.
 
 ## Optional extras
 

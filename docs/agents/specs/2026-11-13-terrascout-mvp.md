@@ -9,6 +9,7 @@ Public LiDAR and DEM coverage across North America can reveal anthropogenic land
 ## Non-goals
 
 - Automated archaeological confirmation or “new site” claims
+- Treating a literature miss as novelty; `novelty_status` stays `not_demonstrated` until retrieval actually happens
 - Publishing precise unpublished coordinates
 - Training an archaeological detector without labeled data
 - Unauthorized excavation or land access guidance
@@ -21,7 +22,7 @@ Public LiDAR and DEM coverage across North America can reveal anthropogenic land
 4. Write GeoJSON, PNG previews, and an HTML map from local files.
 5. Search USGS TNM Access and download size-capped 3DEP subsets.
 6. Store candidates in local SQLite with review status and provenance.
-7. Run a localhost Streamlit dashboard on local data.
+7. Run a localhost Streamlit **candidate site finder**: ranked queue, evidence packet (including novelty fail-closed), human review. Loop is scan → rank → packet → human/authority, not a scheduler.
 8. Orchestrate six specialized agents with typed schemas and real tools. LLM is optional.
 9. Benchmark conventional detection vs single-agent vs multi-agent on synthetic ground truth, with a separate live DEM demonstration.
 

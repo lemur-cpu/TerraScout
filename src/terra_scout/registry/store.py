@@ -67,6 +67,20 @@ class CandidateStore:
             session.commit()
             return self._to_model(row)
 
+    def delete_where_detection_method_not(self, keep: set[str]) -> int:
+        """Delete registry rows whose detection_method is outside keep."""
+        deleted = 0
+        with Session(self.engine) as session:
+            rows = list(session.scalars(select(CandidateRow)).all())
+            for row in rows:
+                payload = json.loads(row.payload_json)
+                method = str(payload.get("detection_method", ""))
+                if method not in keep:
+                    session.delete(row)
+                    deleted += 1
+            session.commit()
+        return deleted
+
     def _to_model(self, row: CandidateRow) -> CandidateFeature:
         payload = json.loads(row.payload_json)
         payload["review_status"] = row.review_status

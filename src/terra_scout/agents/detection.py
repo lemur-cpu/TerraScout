@@ -6,9 +6,8 @@ from terra_scout.detection.pipeline import detect_anomalies
 from terra_scout.io.dem import DigitalElevationModel
 
 
-def run_detection(dem: DigitalElevationModel) -> tuple[DetectionResult, AgentTrace]:
-    result = detect_anomalies(dem)
-    return result, AgentTrace(
+def trace_detection(result: DetectionResult) -> AgentTrace:
+    return AgentTrace(
         agent_id="detection",
         task_id="detect-anomalies",
         tool_calls=[
@@ -25,3 +24,8 @@ def run_detection(dem: DigitalElevationModel) -> tuple[DetectionResult, AgentTra
         ],
         candidate_ids=[candidate.candidate_id for candidate in result.candidates],
     )
+
+
+def run_detection(dem: DigitalElevationModel) -> tuple[DetectionResult, AgentTrace]:
+    result = detect_anomalies(dem)
+    return result, trace_detection(result)

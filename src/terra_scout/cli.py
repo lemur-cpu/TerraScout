@@ -6,12 +6,14 @@ import typer
 from rich.console import Console
 
 from terra_scout import __version__
+from terra_scout.coverage_cli import coverage_app
 
 app = typer.Typer(help="TerraScout: evidence-driven archaeological remote-sensing research.")
 datasets_app = typer.Typer(help="Search and download public elevation datasets.")
 agents_app = typer.Typer(help="Run the typed research swarm.")
 app.add_typer(datasets_app, name="datasets")
 app.add_typer(agents_app, name="agents")
+app.add_typer(coverage_app, name="coverage")
 console = Console()
 
 
@@ -93,11 +95,21 @@ def agents_run(
     dem: Path = typer.Option(..., exists=True, readable=True),
     study_area: Path | None = typer.Option(None, help="Optional GeoJSON polygon"),
     output_dir: Path = typer.Option(Path("output/agents")),
+    place_name: str | None = typer.Option(
+        None,
+        "--place-name",
+        help="Coarse place name for literature notes. Never a coordinate substitute.",
+    ),
 ) -> None:
     """Run geospatial, detection, research, skeptic, verification, and reporting agents."""
     from terra_scout.agents.orchestrator import run_swarm
 
-    report = run_swarm(dem_path=dem, study_area_path=study_area, output_dir=output_dir)
+    report = run_swarm(
+        dem_path=dem,
+        study_area_path=study_area,
+        output_dir=output_dir,
+        place_name=place_name,
+    )
     console.print(report.summary)
     console.print(f"Wrote {report.report_path}")
 
