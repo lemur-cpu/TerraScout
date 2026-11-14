@@ -2,7 +2,9 @@
 
 Evidence-driven research software for finding *potential* anthropogenic landscape features in public LiDAR and digital elevation models.
 
-Anomaly detection is **not** archaeological confirmation. High `anomaly_score` values are residual/shape statistics, not calibrated probabilities that a feature is archaeological. The localhost dashboard is a three-mode explorer — **Briefing** (situation board), **Explore** (terrain workbench), **Investigate** (one candidate evidence packet + specialists). Novelty stays `not_demonstrated` until literature is actually retrieved. A human (and, where required, an authority) confirms. Software does not. Scope now is North America (USGS 3DEP); world-scale coverage is an aspiration, not this release.
+Anomaly detection is **not** archaeological confirmation. High `anomaly_score` values are residual/shape statistics, not calibrated probabilities that a feature is archaeological. The localhost dashboard opens on **Coverage** (CONUS grid board), then **Briefing** (situation board), **Explore** (terrain workbench), and **Investigate** (one candidate evidence packet + specialists). Novelty stays `not_demonstrated` until literature is actually retrieved. A human (and, where required, an authority) confirms. Software does not. Scope now is North America (USGS 3DEP); world-scale coverage is an aspiration, not this release.
+
+**Coverage** tracks a sparse index over a fixed CONUS grid: queue tiles, download size-capped 3DEP subsets, analyze into per-tile study folders, and open results in Explore. Unscanned cells are virtual until enqueued.
 
 ## Quick start
 
@@ -50,6 +52,11 @@ terra-scout datasets download --bbox minx,miny,maxx,maxy --max-megabytes 20 --ou
 terra-scout agents run --dem FILE --study-area FILE --output-dir DIR
 terra-scout dashboard --host 127.0.0.1 --port 8501
 terra-scout benchmark --config experiments/synthetic.yaml --output-dir output/benchmarks
+terra-scout coverage init --root output/coverage
+terra-scout coverage seed-demo --root output/coverage
+terra-scout coverage enqueue --bbox minx,miny,maxx,maxy --root output/coverage
+terra-scout coverage process --next --root output/coverage
+terra-scout coverage status --root output/coverage
 terra-scout version
 ```
 

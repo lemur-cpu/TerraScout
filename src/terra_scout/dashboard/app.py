@@ -5,7 +5,12 @@ import importlib
 import streamlit as st
 
 from terra_scout.dashboard import copy as _dashboard_copy
-from terra_scout.dashboard import pages_briefing, pages_explore, pages_investigate
+from terra_scout.dashboard import (
+    pages_briefing,
+    pages_coverage,
+    pages_explore,
+    pages_investigate,
+)
 from terra_scout.dashboard import shell as _dashboard_shell
 from terra_scout.dashboard.theme import CONSOLE_CSS
 
@@ -14,6 +19,7 @@ from terra_scout.dashboard.theme import CONSOLE_CSS
 _dashboard_copy = importlib.reload(_dashboard_copy)
 _dashboard_shell = importlib.reload(_dashboard_shell)
 pages_briefing = importlib.reload(pages_briefing)
+pages_coverage = importlib.reload(pages_coverage)
 pages_explore = importlib.reload(pages_explore)
 pages_investigate = importlib.reload(pages_investigate)
 
@@ -34,6 +40,16 @@ st.markdown(f"<style>{CONSOLE_CSS}</style>", unsafe_allow_html=True)
 
 def _switch_to(page) -> None:
     st.switch_page(page)
+
+
+def _run_coverage() -> None:
+    copy_mod = importlib.reload(_dashboard_copy)
+    _dashboard_shell.render_masthead(copy_mod)
+    _dashboard_shell.render_sidebar(copy_mod)
+    pages_coverage.render_coverage(
+        root=pages_coverage.COVERAGE_DEFAULT_ROOT,
+        switch_explore=lambda: _switch_to(explore_page),
+    )
 
 
 def _run_briefing() -> None:
@@ -72,9 +88,12 @@ def _run_investigate() -> None:
     pages_investigate.render_investigate(state, copy_mod)
 
 
-briefing_page = st.Page(_run_briefing, title="Briefing", default=True)
+coverage_page = st.Page(_run_coverage, title="Coverage", default=True)
+briefing_page = st.Page(_run_briefing, title="Briefing")
 explore_page = st.Page(_run_explore, title="Explore")
 investigate_page = st.Page(_run_investigate, title="Investigate")
 
-navigation = st.navigation([briefing_page, explore_page, investigate_page])
+navigation = st.navigation(
+    [coverage_page, briefing_page, explore_page, investigate_page],
+)
 navigation.run()

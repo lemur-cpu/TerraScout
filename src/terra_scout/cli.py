@@ -6,12 +6,14 @@ import typer
 from rich.console import Console
 
 from terra_scout import __version__
+from terra_scout.coverage_cli import coverage_app
 
 app = typer.Typer(help="TerraScout: evidence-driven archaeological remote-sensing research.")
 datasets_app = typer.Typer(help="Search and download public elevation datasets.")
 agents_app = typer.Typer(help="Run the typed research swarm.")
 app.add_typer(datasets_app, name="datasets")
 app.add_typer(agents_app, name="agents")
+app.add_typer(coverage_app, name="coverage")
 console = Console()
 
 
