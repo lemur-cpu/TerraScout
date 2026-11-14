@@ -30,8 +30,10 @@ HOME_CTA_EXPLORE = "Open Explore"
 SWARM_HEADING = "Swarm monitor"
 SWARM_CAPTION = "Slice B — not shipped in this release."
 SWARM_BODY = (
-    "Run the agent swarm from the CLI on a scanned tile study folder:\n\n"
-    "`uv run terra-scout agents --output-dir output/coverage/tiles/<tile_id>`\n\n"
+    "Run the agent swarm from the CLI on a scanned tile’s DEM, then open Investigate "
+    "for specialist notes:\n\n"
+    "`uv run terra-scout agents run --dem path/to/tile.tif "
+    "--output-dir output/coverage/tiles/<tile_id>`\n\n"
     "A live localhost monitor lands in Slice B. There is no cloud worker fleet."
 )
 REVIEW_HEADING = "Flagged review queue"
