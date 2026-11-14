@@ -67,7 +67,7 @@ This was run against USGS 3DEP ImageServer (not a mock):
 
 Those candidates are terrain anomalies on a well-documented public landscape. They are **not** new archaeological sites. Precise geometries were kept in a local `output/` tree and are gitignored.
 
-Reproduce:
+Reproduce from the CLI:
 
 ```bash
 uv run terra-scout datasets download \
@@ -77,6 +77,8 @@ uv run terra-scout datasets download \
 uv run terra-scout analyze --dem data/cache/usgs_3dep_m90p0700_38p6550_m90p0550_38p6650.tif \
   --output-dir output/demo
 ```
+
+Or from the dashboard **Briefing → Acquire study area**: load the demo bbox, keep the size cap (≤5 MB), set output to `output/study`, then **Download USGS 3DEP and analyze**. DATA PATH switches to that folder; **Explore** / **Investigate** walk the same candidates. Coverage is not universal; oversize downloads are refused.
 
 ## Optional extras
 
