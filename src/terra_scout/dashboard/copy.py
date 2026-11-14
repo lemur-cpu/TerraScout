@@ -43,7 +43,11 @@ ABOUT = (
 
 ACQUIRE_HEADING = "Acquire study area"
 ACQUIRE_CAPTION = (
-    "Enter a WGS84 bounding box or load the public demo box. TerraScout downloads a "
-    "size-capped USGS 3DEP DEM, runs analyze, and points the explorer at that output."
+    "Download a size-capped USGS 3DEP DEM for a North America bounding box, "
+    "then run geometric detection into a local output folder."
 )
-ACQUIRE_SUCCESS = "Acquire finished. Open Explore to walk the terrain layers."
+ACQUIRE_NOTE = (
+    "Coverage is not universal. Download refuses oversize payloads. "
+    "Results are candidate sites for review — not confirmed archaeology."
+)
+ACQUIRE_DEMO_HELP = "Uses the documented public demo box near St. Louis / Cahokia region."

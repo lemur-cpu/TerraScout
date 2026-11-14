@@ -47,23 +47,21 @@ def acquire_and_analyze(
     output_dir: Path,
     max_megabytes: float,
 ) -> AcquireResult:
-    """Download a size-capped 3DEP subset and run conventional DEM analysis."""
-    west, south, east, north = parse_bbox(
-        west=west, south=south, east=east, north=north
-    )
+    """Download a size-capped 3DEP subset and run conventional analyze."""
+    bbox = parse_bbox(west=west, south=south, east=east, north=north)
+    if max_megabytes <= 0:
+        raise AcquireError("max_megabytes must be positive")
     dem_path = download_3dep_subset(
-        west,
-        south,
-        east,
-        north,
+        *bbox,
         output_dir=cache_dir,
         max_megabytes=max_megabytes,
     )
+    analyze_dem(dem_path, output_dir)
     dem = load_dem(dem_path)
-    written = analyze_dem(dem_path, output_dir)
     from terra_scout.registry.store import CandidateStore
 
-    count = len(CandidateStore(written["registry"]).list_candidates())
+    registry = output_dir / "registry.sqlite3"
+    count = len(CandidateStore(registry).list_candidates()) if registry.exists() else 0
     return AcquireResult(
         dem_path=dem_path,
         output_dir=output_dir,

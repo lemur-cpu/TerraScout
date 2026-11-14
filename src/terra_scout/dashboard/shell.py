@@ -26,9 +26,17 @@ def render_masthead(copy_mod) -> None:
 
 
 def render_sidebar(copy_mod) -> tuple[Path, str | None]:
-    default_dir = Path("output/analyze")
+    study = Path("output/study")
+    default_name = "output/study" if (study / "registry.sqlite3").exists() else "output/analyze"
+    default_dir = Path(st.session_state.get("ts_data_path", default_name))
+    if "ts_data_path" not in st.session_state:
+        st.session_state.ts_data_path = str(default_dir)
     analysis_dir = Path(
-        st.sidebar.text_input("DATA PATH", value=str(default_dir), key="ts_data_path")
+        st.sidebar.text_input(
+            "DATA PATH",
+            value=st.session_state.ts_data_path,
+            key="ts_data_path",
+        )
     )
     dem_override = st.sidebar.text_input(
         "DEM PATH (override)",
@@ -46,17 +54,26 @@ def load_state(analysis_dir: Path) -> DashboardState:
     return load_analysis_directory(analysis_dir)
 
 
-def load_or_stop(analysis_dir: Path, *, allow_empty: bool = False) -> DashboardState:
+def load_for_briefing(analysis_dir: Path) -> DashboardState:
     state = load_analysis_directory(analysis_dir)
-    if allow_empty and state.status == "empty":
+    if state.status == "empty":
         return state
-    if allow_empty and state.status == "error" and "does not exist" in state.message:
-        # Briefing can acquire into a path that does not exist yet.
+    if state.status == "error" and "does not exist" in state.message:
         return DashboardState(
             status="empty",
             message=state.message,
             run_root=analysis_dir,
         )
+    if state.status == "error":
+        st.error(state.message)
+        st.stop()
+    return state
+
+
+def load_or_stop(analysis_dir: Path, *, allow_empty: bool = False) -> DashboardState:
+    if allow_empty:
+        return load_for_briefing(analysis_dir)
+    state = load_analysis_directory(analysis_dir)
     if state.status == "empty":
         st.info(state.message)
         st.stop()

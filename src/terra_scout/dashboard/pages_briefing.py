@@ -8,6 +8,7 @@ from terra_scout.config import get_settings
 from terra_scout.dashboard.acquire import DEMO_BBOX, AcquireError, acquire_and_analyze
 from terra_scout.dashboard.loader import DashboardState
 from terra_scout.dashboard.traces import load_agent_traces
+from terra_scout.data.usgs import DownloadLimitExceeded
 
 
 def render_briefing(
@@ -20,7 +21,8 @@ def render_briefing(
     st.subheader(copy_mod.BRIEFING_HEADING)
     st.caption(copy_mod.BRIEFING_CAPTION)
 
-    analysis_dir = state.run_root or Path(st.session_state.get("ts_data_path", "output/analyze"))
+    default_out = Path(st.session_state.get("ts_acquire_output", "output/study"))
+    analysis_dir = state.run_root or default_out
     _render_acquire_panel(copy_mod, analysis_dir=Path(analysis_dir), switch_explore=switch_explore)
 
     if state.status == "empty":
@@ -64,11 +66,13 @@ def render_briefing(
 def _render_acquire_panel(copy_mod, *, analysis_dir: Path, switch_explore) -> None:
     st.markdown(f"**{copy_mod.ACQUIRE_HEADING}**")
     st.caption(copy_mod.ACQUIRE_CAPTION)
-    if st.button("Load public demo bbox"):
+    st.info(copy_mod.ACQUIRE_NOTE)
+    if st.button("Load demo bbox", help=copy_mod.ACQUIRE_DEMO_HELP):
         st.session_state["ts_acq_west"] = DEMO_BBOX[0]
         st.session_state["ts_acq_south"] = DEMO_BBOX[1]
         st.session_state["ts_acq_east"] = DEMO_BBOX[2]
         st.session_state["ts_acq_north"] = DEMO_BBOX[3]
+        st.rerun()
     cols = st.columns(4)
     west = cols[0].number_input(
         "west", value=float(st.session_state.get("ts_acq_west", DEMO_BBOX[0])), key="ts_acq_west"
@@ -87,27 +91,42 @@ def _render_acquire_panel(copy_mod, *, analysis_dir: Path, switch_explore) -> No
         key="ts_acq_north",
     )
     settings = get_settings()
+    output_dir = Path(
+        st.text_input(
+            "Output directory",
+            value=str(st.session_state.get("ts_acquire_output", "output/study")),
+            key="ts_acquire_output",
+        )
+    )
+    max_mb = st.number_input(
+        "Max download MB",
+        min_value=0.1,
+        value=float(settings.max_download_megabytes),
+        step=1.0,
+        key="ts_acquire_max_mb",
+    )
     if st.button("Download 3DEP + analyze", type="primary"):
         try:
-            result = acquire_and_analyze(
-                west=float(west),
-                south=float(south),
-                east=float(east),
-                north=float(north),
-                cache_dir=Path(settings.cache_dir),
-                output_dir=analysis_dir,
-                max_megabytes=float(settings.max_download_megabytes),
-            )
-        except (AcquireError, OSError, RuntimeError) as error:
+            with st.spinner("Downloading 3DEP and running analyze…"):
+                result = acquire_and_analyze(
+                    west=float(west),
+                    south=float(south),
+                    east=float(east),
+                    north=float(north),
+                    cache_dir=Path(settings.cache_dir),
+                    output_dir=output_dir,
+                    max_megabytes=float(max_mb),
+                )
+        except (AcquireError, DownloadLimitExceeded, OSError, RuntimeError) as error:
             st.error(str(error))
             return
         st.session_state.ts_data_path = str(result.output_dir)
         st.success(
-            f"{copy_mod.ACQUIRE_SUCCESS} kind={result.observation_kind} "
-            f"candidates={result.candidate_count}"
+            f"Acquire finished ({result.observation_kind}, {result.candidate_count} candidates)."
         )
-        if switch_explore is not None and st.button("Open Explore"):
-            switch_explore()
+        st.rerun()
+    if switch_explore is not None and st.button("Open Explore"):
+        switch_explore()
 
 
 def _render_swarm_summary(state: DashboardState, copy_mod) -> None:

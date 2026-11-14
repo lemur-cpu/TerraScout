@@ -41,7 +41,7 @@ def _run_briefing() -> None:
     _dashboard_shell.render_masthead(copy_mod)
     analysis_dir, dem_override = _dashboard_shell.render_sidebar(copy_mod)
     del dem_override
-    state = _dashboard_shell.load_or_stop(analysis_dir, allow_empty=True)
+    state = _dashboard_shell.load_for_briefing(analysis_dir)
     pages_briefing.render_briefing(
         state,
         copy_mod,
