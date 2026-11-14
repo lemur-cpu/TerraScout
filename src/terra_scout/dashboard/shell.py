@@ -25,6 +25,10 @@ def render_masthead(copy_mod) -> None:
     st.warning(copy_mod.WARNING)
 
 
+DATA_PATH_KEY = "ts_data_path"
+DATA_PATH_PENDING_KEY = "ts_data_path_pending"
+
+
 def default_data_path() -> str:
     """Prefer an existing USGS study output when present."""
     study = Path("output/study")
@@ -33,13 +37,27 @@ def default_data_path() -> str:
     return "output/analyze"
 
 
+def queue_data_path(state: dict, path: str | Path) -> None:
+    """Schedule a DATA PATH change for the next run (before the widget exists)."""
+    state[DATA_PATH_PENDING_KEY] = str(path)
+
+
+def apply_pending_data_path(state: dict) -> None:
+    """Apply a queued DATA PATH before instantiating the sidebar widget."""
+    pending = state.pop(DATA_PATH_PENDING_KEY, None)
+    if pending is not None:
+        state[DATA_PATH_KEY] = str(pending)
+
+
 def render_sidebar(copy_mod) -> tuple[Path, str | None]:
     # key-only widgets: passing value= with key= resets the field on page switches.
-    if "ts_data_path" not in st.session_state:
-        st.session_state.ts_data_path = default_data_path()
+    # Acquire queues a path via DATA_PATH_PENDING_KEY; apply it before the widget.
+    apply_pending_data_path(st.session_state)
+    if DATA_PATH_KEY not in st.session_state:
+        st.session_state[DATA_PATH_KEY] = default_data_path()
     if "ts_dem_override" not in st.session_state:
         st.session_state.ts_dem_override = ""
-    analysis_dir = Path(st.sidebar.text_input("DATA PATH", key="ts_data_path"))
+    analysis_dir = Path(st.sidebar.text_input("DATA PATH", key=DATA_PATH_KEY))
     dem_override = st.sidebar.text_input(
         "DEM PATH (override)",
         key="ts_dem_override",

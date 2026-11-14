@@ -7,6 +7,7 @@ import streamlit as st
 from terra_scout.config import get_settings
 from terra_scout.dashboard.acquire import DEMO_BBOX, AcquireError, acquire_and_analyze
 from terra_scout.dashboard.loader import DashboardState
+from terra_scout.dashboard.shell import queue_data_path
 from terra_scout.dashboard.traces import load_agent_traces
 from terra_scout.data.usgs import DownloadLimitExceeded
 
@@ -120,7 +121,7 @@ def _render_acquire_panel(copy_mod, *, analysis_dir: Path, switch_explore) -> No
         except (AcquireError, DownloadLimitExceeded, OSError, RuntimeError) as error:
             st.error(str(error))
             return
-        st.session_state.ts_data_path = str(result.output_dir)
+        queue_data_path(st.session_state, result.output_dir)
         st.success(
             f"Wrote {result.candidate_count} candidate site(s) to `{result.output_dir}` "
             f"from `{result.dem_path.name}` ({result.observation_kind}). "
