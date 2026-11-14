@@ -165,7 +165,7 @@ def test_finder_copy_does_not_auto_claim_sites() -> None:
     assert "terrascout" in HEADING.lower()
     assert "north america" in CAPTION.lower()
     assert "lidar" in CAPTION.lower() or "dem" in CAPTION.lower()
-    assert "not a new site" in WARNING.lower()
+    assert "not evidence the place is unknown" in WARNING.lower()
     assert "not confirmed archaeological" in WARNING.lower()
     assert "novelty is not demonstrated" in ABOUT.lower()
     assert "candidate" in ABOUT.lower()
@@ -199,7 +199,7 @@ def test_stale_copy_module_needs_reload_to_export_new_names() -> None:
         importlib.reload(copy_mod)
 
 
-def test_dashboard_app_wires_three_modes_and_reloads() -> None:
+def test_dashboard_app_wires_operator_nav_and_reloads() -> None:
     text = (
         Path(__file__).resolve().parents[1]
         / "src"
@@ -210,7 +210,10 @@ def test_dashboard_app_wires_three_modes_and_reloads() -> None:
     reload_at = text.find("importlib.reload")
     assert reload_at != -1
     assert "st.navigation" in text
-    assert 'title="Coverage"' in text
+    assert 'title="Home"' in text
+    assert 'title="Scan"' in text
+    assert 'title="Swarm"' in text
+    assert 'title="Review"' in text
     assert 'title="Briefing"' in text
     assert 'title="Explore"' in text
     assert 'title="Investigate"' in text

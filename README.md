@@ -2,9 +2,9 @@
 
 Evidence-driven research software for finding *potential* anthropogenic landscape features in public LiDAR and digital elevation models.
 
-Anomaly detection is **not** archaeological confirmation. High `anomaly_score` values are residual/shape statistics, not calibrated probabilities that a feature is archaeological. The localhost dashboard opens on **Coverage** (CONUS grid board), then **Briefing** (situation board), **Explore** (terrain workbench), and **Investigate** (one candidate evidence packet + specialists). Novelty stays `not_demonstrated` until literature is actually retrieved. A human (and, where required, an authority) confirms. Software does not. Scope now is North America (USGS 3DEP); world-scale coverage is an aspiration, not this release.
+Anomaly detection is **not** archaeological confirmation. High `anomaly_score` values are residual/shape statistics, not calibrated probabilities that a feature is archaeological. The localhost dashboard opens on **Home** (operator loop), then **Scan** (CONUS coverage %), **Swarm** / **Review** (honest stubs until later slices), **Explore** (terrain workbench), plus **Briefing** and **Investigate** for power users. Novelty stays `not_demonstrated` until literature is actually retrieved. A human (and, where required, an authority) confirms. Software does not. Scope now is North America (USGS 3DEP); world-scale coverage is an aspiration, not this release.
 
-**Coverage** tracks a sparse index over a fixed CONUS grid: queue tiles, download size-capped 3DEP subsets, analyze into per-tile study folders, and open results in Explore. Unscanned cells are virtual until enqueued.
+**Scan** tracks a sparse index over a fixed CONUS grid: queue tiles (demo region or custom bbox), download size-capped 3DEP subsets, analyze into per-tile study folders, and open results in Explore. Completeness is `(scanned + skipped) / total CONUS cells`. Unscanned cells are virtual until enqueued.
 
 ## Quick start
 

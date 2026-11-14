@@ -9,7 +9,10 @@ from terra_scout.dashboard import (
     pages_briefing,
     pages_coverage,
     pages_explore,
+    pages_home,
     pages_investigate,
+    pages_review,
+    pages_swarm,
 )
 from terra_scout.dashboard import shell as _dashboard_shell
 from terra_scout.dashboard.theme import CONSOLE_CSS
@@ -21,7 +24,10 @@ _dashboard_shell = importlib.reload(_dashboard_shell)
 pages_briefing = importlib.reload(pages_briefing)
 pages_coverage = importlib.reload(pages_coverage)
 pages_explore = importlib.reload(pages_explore)
+pages_home = importlib.reload(pages_home)
 pages_investigate = importlib.reload(pages_investigate)
+pages_review = importlib.reload(pages_review)
+pages_swarm = importlib.reload(pages_swarm)
 
 PAGE_TITLE = _dashboard_copy.PAGE_TITLE
 ABOUT = _dashboard_copy.ABOUT
@@ -42,6 +48,19 @@ def _switch_to(page) -> None:
     st.switch_page(page)
 
 
+def _run_home() -> None:
+    copy_mod = importlib.reload(_dashboard_copy)
+    _dashboard_shell.render_masthead(copy_mod)
+    pages_home.render_home(
+        root=pages_coverage.COVERAGE_DEFAULT_ROOT,
+        copy_mod=copy_mod,
+        switch_scan=lambda: _switch_to(scan_page),
+        switch_swarm=lambda: _switch_to(swarm_page),
+        switch_review=lambda: _switch_to(review_page),
+        switch_explore=lambda: _switch_to(explore_page),
+    )
+
+
 def _run_coverage() -> None:
     copy_mod = importlib.reload(_dashboard_copy)
     _dashboard_shell.render_masthead(copy_mod)
@@ -50,6 +69,22 @@ def _run_coverage() -> None:
         root=pages_coverage.COVERAGE_DEFAULT_ROOT,
         switch_explore=lambda: _switch_to(explore_page),
         copy_mod=copy_mod,
+    )
+
+
+def _run_swarm() -> None:
+    copy_mod = importlib.reload(_dashboard_copy)
+    _dashboard_shell.render_masthead(copy_mod)
+    pages_swarm.render_swarm(copy_mod, switch_scan=lambda: _switch_to(scan_page))
+
+
+def _run_review() -> None:
+    copy_mod = importlib.reload(_dashboard_copy)
+    _dashboard_shell.render_masthead(copy_mod)
+    _dashboard_shell.render_sidebar(copy_mod)
+    pages_review.render_review(
+        copy_mod,
+        switch_investigate=lambda: _switch_to(investigate_page),
     )
 
 
@@ -89,12 +124,23 @@ def _run_investigate() -> None:
     pages_investigate.render_investigate(state, copy_mod)
 
 
-coverage_page = st.Page(_run_coverage, title="Coverage", default=True)
-briefing_page = st.Page(_run_briefing, title="Briefing")
+home_page = st.Page(_run_home, title="Home", default=True)
+scan_page = st.Page(_run_coverage, title="Scan")
+swarm_page = st.Page(_run_swarm, title="Swarm")
+review_page = st.Page(_run_review, title="Review")
 explore_page = st.Page(_run_explore, title="Explore")
+briefing_page = st.Page(_run_briefing, title="Briefing")
 investigate_page = st.Page(_run_investigate, title="Investigate")
 
 navigation = st.navigation(
-    [coverage_page, briefing_page, explore_page, investigate_page],
+    [
+        home_page,
+        scan_page,
+        swarm_page,
+        review_page,
+        explore_page,
+        briefing_page,
+        investigate_page,
+    ],
 )
 navigation.run()

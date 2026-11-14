@@ -6,8 +6,41 @@ CAPTION = "Local LiDAR / DEM explorer for North America"
 WARNING = (
     "Candidates stay on this machine. Do not publish unpublished coordinates. "
     "Terrain anomalies are candidates for review — not confirmed archaeological sites. "
-    "A missing literature record is not a new site."
+    "A missing literature record is not evidence the place is unknown."
 )
+HOME_HEADING = "North America operator loop"
+HOME_CAPTION = (
+    "Scan CONUS tiles, monitor swarm progress (later), review qualified flags, "
+    "or explore terrain directly on this machine."
+)
+HOME_LOOP = (
+    "**Scan** queues USGS 3DEP tiles on a fixed CONUS grid. "
+    "**Swarm** (Slice B) will attach the CLI agent swarm to scanned terrain. "
+    "**Review** (Slice C) will surface research-gated candidate flags. "
+    "**Explore** is the terrain workbench for hillshade, LRM, and geometric detect."
+)
+HOME_ETHICS = (
+    "Anomalies are not confirmed archaeology. Missing inventory or literature records "
+    "do not mean a place is a new site."
+)
+HOME_CTA_SCAN = "Open Scan"
+HOME_CTA_SWARM = "Swarm (stub)"
+HOME_CTA_REVIEW = "Review (stub)"
+HOME_CTA_EXPLORE = "Open Explore"
+SWARM_HEADING = "Swarm monitor"
+SWARM_CAPTION = "Slice B — not shipped in this release."
+SWARM_BODY = (
+    "Run the agent swarm from the CLI on a scanned tile study folder:\n\n"
+    "`uv run terra-scout agents --output-dir output/coverage/tiles/<tile_id>`\n\n"
+    "A live localhost monitor lands in Slice B. There is no cloud worker fleet."
+)
+REVIEW_HEADING = "Flagged review queue"
+REVIEW_CAPTION = "Slice C — not shipped in this release."
+REVIEW_BODY = (
+    "Research-backed qualification gates and a dedicated review queue land in Slice C. "
+    "Until then, use **Investigate** on one study at a time."
+)
+REVIEW_INVESTIGATE_CTA = "Open Investigate"
 LOOP_CAPTION = "Workflow: scan terrain → rank candidates → review evidence → human decision."
 BRIEFING_HEADING = "Briefing"
 BRIEFING_CAPTION = (
@@ -52,7 +85,7 @@ ACQUIRE_NOTE = (
 )
 ACQUIRE_DEMO_HELP = "Uses the documented public demo box near St. Louis / Cahokia region."
 
-COVERAGE_HEADING = "CONUS coverage board"
+COVERAGE_HEADING = "Scan — CONUS coverage board"
 COVERAGE_CAPTION = (
     "Progressive USGS 3DEP scanning over a fixed CONUS grid. "
     "Queue tiles, process with a download cap, and open studies in Explore."

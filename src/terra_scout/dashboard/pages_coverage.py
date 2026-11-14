@@ -8,6 +8,8 @@ from terra_scout.config import get_settings
 from terra_scout.coverage.grid import parse_tile_id
 from terra_scout.coverage.index import CoverageIndex
 from terra_scout.coverage.process import process_next
+from terra_scout.coverage.progress import coverage_completeness
+from terra_scout.dashboard.acquire import DEMO_BBOX
 from terra_scout.dashboard.shell import queue_data_path
 
 COVERAGE_DEFAULT_ROOT = Path("output/coverage")
@@ -28,6 +30,38 @@ def render_coverage(
     index = CoverageIndex(db_path)
     index.ensure_open()
     counts = index.status_counts()
+    pct = coverage_completeness(counts)
+    st.metric("Scan completeness", f"{pct:.4f}%")
+
+    st.subheader("Regions")
+    demo_west, demo_south, demo_east, demo_north = DEMO_BBOX
+    allow_rescan_seed = st.checkbox(
+        "Allow re-scan when seeding demo (re-queue scanned demo cells)",
+        value=False,
+        key="ts_scan_allow_rescan_demo",
+    )
+    if st.button("Seed demo region"):
+        added = index.enqueue_demo_seed(allow_scanned=allow_rescan_seed)
+        st.success(f"Queued {added} demo tile(s).")
+        st.rerun()
+
+    st.caption("Custom WGS84 bounding box (degrees)")
+    bw, bs, be, bn = st.columns(4)
+    with bw:
+        west = st.number_input("West", value=float(demo_west), key="ts_scan_west")
+    with bs:
+        south = st.number_input("South", value=float(demo_south), key="ts_scan_south")
+    with be:
+        east = st.number_input("East", value=float(demo_east), key="ts_scan_east")
+    with bn:
+        north = st.number_input("North", value=float(demo_north), key="ts_scan_north")
+    if st.button("Enqueue custom bbox"):
+        try:
+            added = index.enqueue_bbox(west, south, east, north)
+            st.success(f"Queued {added} tile(s) intersecting bbox.")
+            st.rerun()
+        except ValueError as error:
+            st.error(str(error))
 
     c1, c2, c3, c4, c5, c6 = st.columns(6)
     c1.metric("Unscanned", counts.get("unscanned", 0))
@@ -45,16 +79,6 @@ def render_coverage(
         max_value=500.0,
         value=float(settings.max_download_megabytes),
     )
-
-    allow_rescan_seed = st.checkbox(
-        "Allow re-scan when seeding demo (re-queue scanned demo cells)",
-        value=False,
-    )
-
-    if st.button("Seed demo tiles"):
-        added = index.enqueue_demo_seed(allow_scanned=allow_rescan_seed)
-        st.success(f"Queued {added} demo tile(s).")
-        st.rerun()
 
     if st.button("Process batch"):
         outcomes = process_next(
