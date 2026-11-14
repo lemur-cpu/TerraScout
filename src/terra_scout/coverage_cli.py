@@ -10,8 +10,6 @@ from terra_scout.config import get_settings
 from terra_scout.coverage.index import CoverageIndex
 from terra_scout.coverage.process import process_next
 
-DEFAULT_COVERAGE_ROOT = Path("output/coverage")
-
 coverage_app = typer.Typer(help="Progressive CONUS coverage board and tile processor.")
 console = Console()
 
@@ -30,24 +28,16 @@ def _parse_bbox(bbox: str) -> tuple[float, float, float, float]:
     return west, south, east, north
 
 
-@coverage_app.callback()
-def coverage_callback(
-    ctx: typer.Context,
+@coverage_app.command("init")
+def coverage_init(
     root: Path = typer.Option(
-        DEFAULT_COVERAGE_ROOT,
+        Path("output/coverage"),
         "--root",
         help="Coverage workspace root (SQLite index, cache, tiles).",
         file_okay=False,
     ),
 ) -> None:
-    """Commands share --root (default output/coverage)."""
-    ctx.obj = {"root": root}
-
-
-@coverage_app.command("init")
-def coverage_init(ctx: typer.Context) -> None:
     """Create the coverage SQLite index under --root."""
-    root: Path = ctx.obj["root"]
     root.mkdir(parents=True, exist_ok=True)
     (root / "tiles").mkdir(parents=True, exist_ok=True)
     path = _index_for_root(root).ensure_open()
@@ -56,11 +46,15 @@ def coverage_init(ctx: typer.Context) -> None:
 
 @coverage_app.command("seed-demo")
 def coverage_seed_demo(
-    ctx: typer.Context,
+    root: Path = typer.Option(
+        Path("output/coverage"),
+        "--root",
+        help="Coverage workspace root (SQLite index, cache, tiles).",
+        file_okay=False,
+    ),
     allow_scanned: bool = typer.Option(False, help="Re-queue tiles already marked scanned."),
 ) -> None:
     """Enqueue demo bbox tiles (README public 3DEP box)."""
-    root: Path = ctx.obj["root"]
     index = _index_for_root(root)
     index.ensure_open()
     added = index.enqueue_demo_seed(allow_scanned=allow_scanned)
@@ -69,12 +63,16 @@ def coverage_seed_demo(
 
 @coverage_app.command("enqueue")
 def coverage_enqueue(
-    ctx: typer.Context,
+    root: Path = typer.Option(
+        Path("output/coverage"),
+        "--root",
+        help="Coverage workspace root (SQLite index, cache, tiles).",
+        file_okay=False,
+    ),
     bbox: str = typer.Option(..., help="minx,miny,maxx,maxy in WGS84"),
     allow_scanned: bool = typer.Option(False, help="Re-queue tiles already marked scanned."),
 ) -> None:
     """Enqueue every grid tile intersecting a bbox."""
-    root: Path = ctx.obj["root"]
     west, south, east, north = _parse_bbox(bbox)
     index = _index_for_root(root)
     index.ensure_open()
@@ -84,7 +82,12 @@ def coverage_enqueue(
 
 @coverage_app.command("process")
 def coverage_process(
-    ctx: typer.Context,
+    root: Path = typer.Option(
+        Path("output/coverage"),
+        "--root",
+        help="Coverage workspace root (SQLite index, cache, tiles).",
+        file_okay=False,
+    ),
     next_tile: bool = typer.Option(
         False,
         "--next",
@@ -101,7 +104,6 @@ def coverage_process(
     ),
 ) -> None:
     """Download, analyze, and mark the next queued tile(s)."""
-    root: Path = ctx.obj["root"]
     cap = max_megabytes if max_megabytes is not None else get_settings().max_download_megabytes
     index = _index_for_root(root)
     index.ensure_open()
@@ -127,9 +129,15 @@ def coverage_process(
 
 
 @coverage_app.command("status")
-def coverage_status(ctx: typer.Context) -> None:
+def coverage_status(
+    root: Path = typer.Option(
+        Path("output/coverage"),
+        "--root",
+        help="Coverage workspace root (SQLite index, cache, tiles).",
+        file_okay=False,
+    ),
+) -> None:
     """Show virtual unscanned counts and recent tile rows."""
-    root: Path = ctx.obj["root"]
     index = _index_for_root(root)
     if not index.db_path.exists():
         console.print(f"No index at {index.db_path}; run coverage init first.")
