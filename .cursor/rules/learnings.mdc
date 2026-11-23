@@ -1,0 +1,21 @@
+---
+description: Record learnings after Courtney says learn! or after a correction
+alwaysApply: true
+---
+
+# Learnings
+
+When Courtney says `learn!` after a correction:
+
+1. Identify the problem created and why it was a problem.
+2. Identify how she said to fix it.
+3. Write a 1-to-4-sentence learning. Put it in the Learnings section of the most relevant `.cursor/rules/` file, or as `docs/agents/learnings/YYYY-MM-DD-<slug>.md` when the lesson is non-obvious, verified, and durable.
+
+Each learning has a counter. Increase it when a learning was useful. Decrease it when it caused more problems. Remove a learning whose counter hits zero and that keeps causing harm.
+
+Do not invent learnings. Wait for a correction or a verified durable lesson.
+
+## Learnings
+
+<!-- counter: 0 -->
+(none yet)

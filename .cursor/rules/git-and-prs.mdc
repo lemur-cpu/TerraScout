@@ -1,0 +1,38 @@
+---
+description: Git, branches, commits, and pull requests for personal projects
+alwaysApply: true
+---
+
+# Git, branches, and PRs
+
+## Branches
+
+- Prefix as a path segment: `feat/…`, `fix/…`, `docs/…`, `chore/…`, `test/…`, `wip/…`.
+- With a ticket key, put it first: `ABC-123-fix/short-slug`.
+- Short, intent-shaped slug. Always lowercase.
+- **Never** use the `cursor/` prefix. Cloud Agent runs default to `cursor/<name>-suffix`; rename before opening or updating a PR.
+- Never commit to `main` or a release branch.
+
+## Commits
+
+- Conventional-commit subjects with an optional scope: `fix(map): …`, `feat(dashboard): …`, `docs: …`.
+- Imperative subject. A body only when the why isn't obvious.
+- One logical change per commit.
+- Stage explicit paths (`git add <path>`). Never `git add -A`.
+- Each commit must compile and pass the tests for the code it touches.
+- Before any push, run the full validation for the touched area.
+- Never force-push. Exception: a branch you own may use `--force-with-lease` after integrating remote commits you didn't write.
+- Don't amend or rewrite published commits unless asked.
+
+## Pull requests
+
+- Title: `type: brief description`.
+- Keep PRs small and focused. Break large features into several PRs.
+- Follow existing conventions. Study similar code before implementing.
+- Fill `.github/pull_request_template.md`: Why, Testing done, Notes.
+- Never merge PRs, including `gh pr merge --auto`.
+
+## Learnings
+
+<!-- counter: 0 -->
+(none yet)

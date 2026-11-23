@@ -1,0 +1,18 @@
+---
+description: Python standards for personal projects
+globs: "*.py"
+---
+
+# Python
+
+- Python 3.12+ unless the repo pins otherwise. Format and lint with the repo tools (`ruff` here).
+- Identifiers: snake_case. Types, Pydantic models, and classes: PascalCase.
+- Prefer `uv` for install, run, and test when the repo has `uv.lock`.
+- Explicit types on public functions. Fail fast on bad GIS, CRS, nodata, HTTP, and config input.
+- Don't swallow exceptions. Don't add `# noqa` without a one-line reason.
+- Tests live under `tests/`. Put a new case in the relevant module, not a catch-all file.
+
+## Learnings
+
+<!-- counter: 0 -->
+(none yet)

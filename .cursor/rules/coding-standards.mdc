@@ -1,0 +1,22 @@
+---
+description: Global coding standards for Courtney's personal projects
+alwaysApply: true
+---
+
+# Coding standards
+
+1. **YAGNI.** Don't build it until it's needed. No options, hooks, or branches for a case with no caller.
+2. **DRY.** Extract a pattern after the second duplication, not before. One copy stays inline.
+3. **Fail fast.** Explicit errors beat silent failures. Throw or return a clear failure on bad input. Don't swallow errors or continue with a default that hides them.
+4. **Simple first.** Write the obvious solution. Optimize only when a measured need says so.
+5. **Delete aggressively.** Remove unused parameters, helpers, and branches.
+6. **Semantic naming.** Names should say what the value holds without surrounding context. Prefer `waitUntilObsIsSaved=true` over `wait=true`. Use the domain term, not an abbreviation.
+
+Small, single-purpose functions with clear names. Prefer pure functions. Comment only non-obvious intent, trade-offs, or constraints — never what the code does.
+
+Follow the surrounding module layout. Don't invent a parallel folder scheme.
+
+## Learnings
+
+<!-- counter: 0 -->
+(none yet)

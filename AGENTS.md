@@ -1,6 +1,6 @@
 # TerraScout agent rules
 
-This file governs future Cursor sessions. It does not replace `docs/agents/specs/` or `docs/agents/plans/`.
+This file governs future Cursor sessions. It does not replace `docs/agents/specs/` or `docs/agents/plans/`. Account-level workflow lives in Cursor User Rules and the `engineering-workflow` skill.
 
 ## Mission
 
@@ -18,7 +18,9 @@ TerraScout is an evidence-driven remote-sensing research system. Anomaly detecti
 
 ## Branching
 
-Cloud agent branches use `cursor/<descriptive-name>-598f`. Do not commit to `main`. Do not force-push.
+- Conventional prefix: `feat/…`, `fix/…`, `docs/…`, `chore/…`, `test/…`.
+- **Never** use the `cursor/` prefix. Cloud Agent runs default to `cursor/<name>-suffix`; rename before opening or updating a PR.
+- Do not commit to `main`. Do not force-push. Do not merge PRs.
 
 ## Data and ethics
 
@@ -49,3 +51,7 @@ uv run terra-scout dashboard
 ## Review bar
 
 Do not skip tests, loosen numeric tolerances, or add `# noqa` without a one-line reason. Verification requires a fresh command, not an earlier run.
+
+## learn!
+
+After a correction, say `learn!` and add a 1-to-4-sentence learning to the Learnings section of the most relevant file under `.cursor/rules/`, or to `docs/agents/learnings/`.
